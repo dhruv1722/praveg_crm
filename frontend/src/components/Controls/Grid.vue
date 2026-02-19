@@ -4,74 +4,37 @@
       {{ __(label) }}
     </div>
 
-    <div
-      v-if="fields?.length"
-      class="rounded border border-outline-gray-modals"
-    >
+    <div v-if="fields?.length" class="rounded border border-outline-gray-modals">
       <!-- Header -->
-      <div
-        class="grid-header flex items-center rounded-t-[7px] bg-surface-gray-2 text-ink-gray-5 truncate"
-      >
-        <div
-          class="inline-flex items-center justify-center border-r border-outline-gray-2 h-8 p-2 w-12"
-        >
-          <Checkbox
-            class="cursor-pointer duration-300"
-            :modelValue="allRowsSelected"
-            @click.stop="toggleSelectAllRows($event.target.checked)"
-          />
+      <div class="grid-header flex items-center rounded-t-[7px] bg-surface-gray-2 text-ink-gray-5 truncate">
+        <div class="inline-flex items-center justify-center border-r border-outline-gray-2 h-8 p-2 w-12">
+          <Checkbox class="cursor-pointer duration-300" :modelValue="allRowsSelected"
+            @click.stop="toggleSelectAllRows($event.target.checked)" />
         </div>
-        <div
-          class="inline-flex items-center justify-center border-r border-outline-gray-2 py-2 px-1 w-12"
-        >
+        <div class="inline-flex items-center justify-center border-r border-outline-gray-2 py-2 px-1 w-12">
           {{ __('No') }}
         </div>
-        <div
-          class="grid w-full truncate"
-          :style="{ gridTemplateColumns: gridTemplateColumns }"
-        >
-          <div
-            v-for="field in fields"
-            class="border-r border-outline-gray-2 p-2 truncate"
-            :class="
-              ['Int', 'Float', 'Currency', 'Percent'].includes(field.fieldtype)
-                ? 'text-right'
-                : ''
-            "
-            :key="field.fieldname"
-            :title="field.label"
-          >
+        <div class="grid w-full truncate" :style="{ gridTemplateColumns: gridTemplateColumns }">
+          <div v-for="field in fields" class="border-r border-outline-gray-2 p-2 truncate" :class="['Int', 'Float', 'Currency', 'Percent'].includes(field.fieldtype)
+              ? 'text-right'
+              : ''
+            " :key="field.fieldname" :title="field.label">
             {{ __(field.label) }}
-            <span
-              v-if="
-                field.reqd ||
-                (field.mandatory_depends_on && field.mandatory_via_depends_on)
-              "
-              class="text-ink-red-2"
-              >*</span
-            >
+            <span v-if="
+              field.reqd ||
+              (field.mandatory_depends_on && field.mandatory_via_depends_on)
+            " class="text-ink-red-2">*</span>
           </div>
         </div>
         <div class="flex items-center justify-center w-12">
-          <Button
-            :tooltip="__('Edit grid fields')"
-            class="rounded !bg-surface-gray-2 border-0 !text-ink-gray-5"
-            variant="outline"
-            icon="settings"
-            @click="showGridFieldsEditorModal = true"
-          />
+          <Button :tooltip="__('Edit grid fields')" class="rounded !bg-surface-gray-2 border-0 !text-ink-gray-5"
+            variant="outline" icon="settings" @click="showGridFieldsEditorModal = true" />
         </div>
       </div>
       <!-- Rows -->
       <template v-if="rows?.length">
-        <Draggable
-          class="w-full"
-          v-model="rows"
-          :delay="isTouchScreenDevice() ? 200 : 0"
-          group="rows"
-          item-key="name"
-          @end="reorder"
-        >
+        <Draggable class="w-full" v-model="rows" :delay="isTouchScreenDevice() ? 200 : 0" group="rows" item-key="name"
+          @end="reorder">
           <template #item="{ element: row, index }">
             <div
               class="grid-row flex cursor-pointer items-center border-b border-outline-gray-modals bg-surface-modals last:rounded-b last:border-b-0"
@@ -81,80 +44,40 @@
                     showRowList[index] = true
                   }
                 }
-              "
-            >
+              ">
               <div
-                class="grid-row-checkbox inline-flex h-9.5 items-center bg-surface-white justify-center border-r border-outline-gray-modals p-2 w-12"
-              >
-                <Checkbox
-                  class="cursor-pointer duration-300"
-                  :modelValue="selectedRows.has(row.name)"
-                  @click.stop="toggleSelectRow(row)"
-                />
+                class="grid-row-checkbox inline-flex h-9.5 items-center bg-surface-white justify-center border-r border-outline-gray-modals p-2 w-12">
+                <Checkbox class="cursor-pointer duration-300" :modelValue="selectedRows.has(row.name)"
+                  @click.stop="toggleSelectRow(row)" />
               </div>
               <div
-                class="flex h-9.5 items-center justify-center bg-surface-white border-r border-outline-gray-modals py-2 px-1 text-sm text-ink-gray-8 w-12"
-              >
+                class="flex h-9.5 items-center justify-center bg-surface-white border-r border-outline-gray-modals py-2 px-1 text-sm text-ink-gray-8 w-12">
                 {{ index + 1 }}
               </div>
-              <div
-                class="grid w-full h-9.5"
-                :style="{ gridTemplateColumns: gridTemplateColumns }"
-              >
-                <div
-                  class="border-r border-outline-gray-modals h-full"
-                  v-for="field in fields"
-                  :key="field.fieldname"
-                >
-                  <FormControl
-                    v-if="
-                      field.read_only &&
-                      ![
-                        'Int',
-                        'Float',
-                        'Currency',
-                        'Percent',
-                        'Check',
-                      ].includes(field.fieldtype)
-                    "
-                    type="text"
-                    :placeholder="field.placeholder"
-                    v-model="row[field.fieldname]"
-                    :disabled="true"
-                  />
-                  <Link
-                    v-else-if="
-                      ['Link', 'Dynamic Link'].includes(field.fieldtype)
-                    "
-                    class="text-sm text-ink-gray-8"
-                    :value="row[field.fieldname]"
-                    :doctype="
-                      field.fieldtype == 'Link'
+              <div class="grid w-full h-9.5" :style="{ gridTemplateColumns: gridTemplateColumns }">
+                <div class="border-r border-outline-gray-modals h-full" v-for="field in fields" :key="field.fieldname">
+                  <FormControl v-if="
+                    field.read_only &&
+                    ![
+                      'Int',
+                      'Float',
+                      'Currency',
+                      'Percent',
+                      'Check',
+                    ].includes(field.fieldtype)
+                  " type="text" :placeholder="field.placeholder" v-model="row[field.fieldname]" :disabled="true" />
+                  <Link v-else-if="
+                    ['Link', 'Dynamic Link'].includes(field.fieldtype)
+                  " class="text-sm text-ink-gray-8" :value="row[field.fieldname]" :doctype="field.fieldtype == 'Link'
                         ? field.options
                         : row[field.options]
-                    "
-                    :filters="field.filters"
-                    @change="(v) => fieldChange(v, field, row)"
-                    :onCreate="
-                      (value, close) => field.create(v, field, row, close)
-                    "
-                  />
-                  <Link
-                    v-else-if="field.fieldtype === 'User'"
-                    class="form-control"
-                    :value="getUser(row[field.fieldname]).full_name"
-                    :doctype="field.options"
-                    :filters="field.filters"
-                    @change="(v) => fieldChange(v, field, row)"
-                    :placeholder="field.placeholder"
-                    :hideMe="true"
-                  >
+                      " :filters="field.filters" @change="(v) => fieldChange(v, field, row)" :onCreate="(value, close) => field.create(v, field, row, close)
+                      " />
+                  <Link v-else-if="field.fieldtype === 'User'" class="form-control"
+                    :value="getUser(row[field.fieldname]).full_name" :doctype="field.options" :filters="field.filters"
+                    @change="(v) => fieldChange(v, field, row)" :placeholder="field.placeholder" :hideMe="true">
                     <template #prefix>
-                      <UserAvatar
-                        class="mr-2"
-                        :user="row[field.fieldname]"
-                        size="sm"
-                      />
+                      <UserAvatar class="mr-2" :user="row[field.fieldname]" size="sm" />
                     </template>
                     <template #item-prefix="{ option }">
                       <UserAvatar class="mr-2" :user="option.value" size="sm" />
@@ -167,184 +90,78 @@
                       </Tooltip>
                     </template>
                   </Link>
-                  <div
-                    v-else-if="field.fieldtype === 'Check'"
-                    class="flex h-full bg-surface-white justify-center items-center"
-                  >
-                    <Checkbox
-                      class="cursor-pointer duration-300"
-                      v-model="row[field.fieldname]"
+                  <div v-else-if="field.fieldtype === 'Check'"
+                    class="flex h-full bg-surface-white justify-center items-center">
+                    <Checkbox class="cursor-pointer duration-300" v-model="row[field.fieldname]"
                       :disabled="!gridSettings.editable_grid"
-                      @change="(e) => fieldChange(e.target.checked, field, row)"
-                    />
+                      @change="(e) => fieldChange(e.target.checked, field, row)" />
                   </div>
-                  <TimePicker
-                    v-else-if="field.fieldtype === 'Time'"
-                    :value="row[field.fieldname]"
-                    variant="outline"
-                    :format="getFormat('', '', false, true, false)"
-                    input-class="border-none text-sm text-ink-gray-8"
-                    @change="(v) => fieldChange(v, field, row)"
-                  />
-                  <DatePicker
-                    v-else-if="field.fieldtype === 'Date'"
-                    :value="row[field.fieldname]"
-                    variant="outline"
-                    :format="getFormat('', '', true, false, false)"
-                    input-class="border-none text-sm text-ink-gray-8"
-                    @change="(v) => fieldChange(v, field, row)"
-                  />
-                  <DateTimePicker
-                    v-else-if="field.fieldtype === 'Datetime'"
-                    :value="row[field.fieldname]"
-                    variant="outline"
-                    :format="getFormat('', '', true, true, false)"
-                    input-class="border-none text-sm text-ink-gray-8"
-                    @change="(v) => fieldChange(v, field, row)"
-                  />
-                  <FormControl
-                    v-else-if="
-                      ['Small Text', 'Text', 'Long Text', 'Code'].includes(
-                        field.fieldtype,
-                      )
-                    "
-                    rows="1"
-                    type="textarea"
-                    variant="outline"
-                    :value="row[field.fieldname]"
-                    @change="fieldChange($event.target.value, field, row)"
-                  />
-                  <FormControl
-                    v-else-if="field.fieldtype === 'Select'"
-                    class="text-sm text-ink-gray-8"
-                    type="select"
-                    variant="outline"
-                    v-model="row[field.fieldname]"
-                    :options="field.options"
-                    @change="(e) => fieldChange(e.target.value, field, row)"
-                  />
-                  <Password
-                    v-else-if="field.fieldtype === 'Password'"
-                    variant="outline"
-                    :value="row[field.fieldname]"
-                    :disabled="Boolean(field.read_only)"
-                    @change="fieldChange($event.target.value, field, row)"
-                  />
-                  <FormattedInput
-                    v-else-if="field.fieldtype === 'Int'"
-                    class="[&_input]:text-right"
-                    type="text"
-                    variant="outline"
-                    :value="row[field.fieldname] || '0'"
-                    :disabled="Boolean(field.read_only)"
-                    @change="fieldChange($event.target.value, field, row)"
-                  />
-                  <FormattedInput
-                    v-else-if="field.fieldtype === 'Percent'"
-                    class="[&_input]:text-right"
-                    type="text"
-                    variant="outline"
-                    :value="getFloatWithPrecision(field.fieldname, row)"
-                    :formattedValue="(row[field.fieldname] || '0') + '%'"
-                    :disabled="Boolean(field.read_only)"
-                    @change="fieldChange(flt($event.target.value), field, row)"
-                  />
-                  <FormattedInput
-                    v-else-if="field.fieldtype === 'Float'"
-                    class="[&_input]:text-right"
-                    type="text"
-                    variant="outline"
-                    :value="getFloatWithPrecision(field.fieldname, row)"
-                    :formattedValue="row[field.fieldname]"
-                    :disabled="Boolean(field.read_only)"
-                    @change="fieldChange(flt($event.target.value), field, row)"
-                  />
-                  <FormattedInput
-                    v-else-if="field.fieldtype === 'Currency'"
-                    class="[&_input]:text-right"
-                    type="text"
-                    variant="outline"
-                    :value="getCurrencyWithPrecision(field.fieldname, row)"
-                    :formattedValue="
-                      getFormattedCurrency(field.fieldname, row, parentDoc)
-                    "
-                    :disabled="Boolean(field.read_only)"
-                    @change="fieldChange(flt($event.target.value), field, row)"
-                  />
-                  <Combobox
-                    v-else-if="field.fieldtype === 'Autocomplete'"
-                    class="combobox"
-                    v-model="row[field.fieldname]"
-                    variant="outline"
-                    @update:modelValue="(v) => fieldChange(v, field, row)"
-                    :options="getOptions(field.options)"
-                    :placeholder="field.placeholder"
-                    :disabled="Boolean(field.read_only)"
-                  />
-                  <FormControl
-                    v-else
-                    class="text-sm text-ink-gray-8"
-                    type="text"
-                    variant="outline"
-                    v-model="row[field.fieldname]"
-                    :options="field.options"
-                    @change="fieldChange($event.target.value, field, row)"
-                  />
+                  <DatePicker v-else-if="field.fieldtype === 'Date'" :value="row[field.fieldname]" icon-left=""
+                    variant="outline" :formatter="(date) => getFormat(date, '', true)"
+                    input-class="border-none text-sm text-ink-gray-8" @change="(v) => fieldChange(v, field, row)" />
+                  <DateTimePicker v-else-if="field.fieldtype === 'Datetime'" :value="row[field.fieldname]" icon-left=""
+                    variant="outline" :formatter="(date) => getFormat(date, '', true, true)"
+                    input-class="border-none text-sm text-ink-gray-8" @change="(v) => fieldChange(v, field, row)" />
+                  <FormControl v-else-if="
+                    ['Small Text', 'Text', 'Long Text', 'Code'].includes(
+                      field.fieldtype,
+                    )
+                  " rows="1" type="textarea" variant="outline" :value="row[field.fieldname]"
+                    @change="fieldChange($event.target.value, field, row)" />
+                  <FormControl v-else-if="field.fieldtype === 'Select'" class="text-sm text-ink-gray-8" type="select"
+                    variant="outline" v-model="row[field.fieldname]" :options="field.options"
+                    @change="(e) => fieldChange(e.target.value, field, row)" />
+                  <Password v-else-if="field.fieldtype === 'Password'" variant="outline" :value="row[field.fieldname]"
+                    :disabled="Boolean(field.read_only)" @change="fieldChange($event.target.value, field, row)" />
+                  <FormattedInput v-else-if="field.fieldtype === 'Int'" class="[&_input]:text-right" type="text"
+                    variant="outline" :value="row[field.fieldname] || '0'" :disabled="Boolean(field.read_only)"
+                    @change="fieldChange($event.target.value, field, row)" />
+                  <FormattedInput v-else-if="field.fieldtype === 'Percent'" class="[&_input]:text-right" type="text"
+                    variant="outline" :value="getFloatWithPrecision(field.fieldname, row)"
+                    :formattedValue="(row[field.fieldname] || '0') + '%'" :disabled="Boolean(field.read_only)"
+                    @change="fieldChange(flt($event.target.value), field, row)" />
+                  <FormattedInput v-else-if="field.fieldtype === 'Float'" class="[&_input]:text-right" type="text"
+                    variant="outline" :value="getFloatWithPrecision(field.fieldname, row)"
+                    :formattedValue="row[field.fieldname]" :disabled="Boolean(field.read_only)"
+                    @change="fieldChange(flt($event.target.value), field, row)" />
+                  <FormattedInput v-else-if="field.fieldtype === 'Currency'" class="[&_input]:text-right" type="text"
+                    variant="outline" :value="getCurrencyWithPrecision(field.fieldname, row)" :formattedValue="getFormattedCurrency(field.fieldname, row, parentDoc)
+                      " :disabled="Boolean(field.read_only)"
+                    @change="fieldChange(flt($event.target.value), field, row)" />
+                  <Combobox v-else-if="field.fieldtype === 'Autocomplete'" class="combobox"
+                    v-model="row[field.fieldname]" variant="outline"
+                    @update:modelValue="(v) => fieldChange(v, field, row)" :options="getOptions(field.options)"
+                    :placeholder="field.placeholder" :disabled="Boolean(field.read_only)" />
+                  <FormControl v-else class="text-sm text-ink-gray-8" type="text" variant="outline"
+                    v-model="row[field.fieldname]" :options="field.options"
+                    @change="fieldChange($event.target.value, field, row)" />
                 </div>
               </div>
               <div class="edit-row flex items-center justify-center w-12">
-                <Button
-                  :tooltip="__('Edit row')"
-                  class="rounded border-0 !text-ink-gray-7"
-                  variant="outline"
-                  :icon="EditIcon"
-                  @click="showRowList[index] = true"
-                />
+                <Button :tooltip="__('Edit row')" class="rounded border-0 !text-ink-gray-7" variant="outline"
+                  :icon="EditIcon" @click="showRowList[index] = true" />
               </div>
-              <GridRowModal
-                v-if="showRowList[index]"
-                v-model="showRowList[index]"
-                v-model:showGridRowFieldsModal="showGridRowFieldsModal"
-                :index="index"
-                :data="row"
-                :doctype="doctype"
-                :parentDoctype="parentDoctype"
-              />
+              <GridRowModal v-if="showRowList[index]" v-model="showRowList[index]"
+                v-model:showGridRowFieldsModal="showGridRowFieldsModal" :index="index" :data="row" :doctype="doctype"
+                :parentDoctype="parentDoctype" />
             </div>
           </template>
         </Draggable>
       </template>
 
-      <div
-        v-else
-        class="flex flex-col items-center rounded p-5 text-sm text-ink-gray-5"
-      >
+      <div v-else class="flex flex-col items-center rounded p-5 text-sm text-ink-gray-5">
         {{ __('No data') }}
       </div>
     </div>
 
     <div v-if="fields?.length" class="mt-2 flex flex-row gap-2">
-      <Button
-        v-if="showDeleteBtn"
-        :label="__('Delete')"
-        variant="solid"
-        theme="red"
-        @click="deleteRows"
-      />
+      <Button v-if="showDeleteBtn" :label="__('Delete')" variant="solid" theme="red" @click="deleteRows" />
       <Button :label="__('Add row')" @click="addRow" />
     </div>
-    <GridRowFieldsModal
-      v-if="showGridRowFieldsModal"
-      v-model="showGridRowFieldsModal"
-      :doctype="doctype"
-      :parentDoctype="parentDoctype"
-    />
-    <GridFieldsEditorModal
-      v-if="showGridFieldsEditorModal"
-      v-model="showGridFieldsEditorModal"
-      :doctype="doctype"
-      :parentDoctype="parentDoctype"
-    />
+    <GridRowFieldsModal v-if="showGridRowFieldsModal" v-model="showGridRowFieldsModal" :doctype="doctype"
+      :parentDoctype="parentDoctype" />
+    <GridFieldsEditorModal v-if="showGridFieldsEditorModal" v-model="showGridFieldsEditorModal" :doctype="doctype"
+      :parentDoctype="parentDoctype" />
   </div>
 </template>
 
@@ -365,7 +182,6 @@ import { createDocument } from '@/composables/document'
 import {
   FormControl,
   Checkbox,
-  TimePicker,
   DateTimePicker,
   DatePicker,
   Tooltip,
@@ -398,9 +214,9 @@ const props = defineProps({
   },
 })
 
-const triggerOnChange = inject('triggerOnChange', () => {})
-const triggerOnRowAdd = inject('triggerOnRowAdd', () => {})
-const triggerOnRowRemove = inject('triggerOnRowRemove', () => {})
+const triggerOnChange = inject('triggerOnChange', () => { })
+const triggerOnRowAdd = inject('triggerOnRowAdd', () => { })
+const triggerOnRowRemove = inject('triggerOnRowRemove', () => { })
 
 const {
   getGridViewSettings,
@@ -463,6 +279,21 @@ function getFieldObj(field) {
       name: ['in', users.data.crmUsers?.map((user) => user.name)],
     })
   }
+
+  // if (
+  //   field.fieldtype === 'Link' &&
+  //   ['CRM Property Room Category', 'CRM Property Meal Plan'].includes(field.options)
+  // ) {
+  //   // resolve parent hotel property
+  //   const hotel_property = parentDoc?.value?.custom_hotel_property
+
+  //   if (hotel_property) {
+  //     field.link_filters = JSON.stringify({
+  //       ...(field.link_filters ? JSON.parse(field.link_filters) : {}),
+  //       hotel_property: hotel_property
+  //     })
+  //   }
+  // }
 
   const fieldObjWithFilters = {
     ...field,
@@ -550,12 +381,7 @@ const reorder = () => {
 }
 
 function fieldChange(value, field, row) {
-  value = Array.isArray(value)
-    ? value
-    : typeof value === 'object' && value !== null && 'value' in value
-      ? value.value
-      : value
-
+  value = typeof value === 'object' && value !== null ? value.value : value
   triggerOnChange(field.fieldname, value, row)
 }
 

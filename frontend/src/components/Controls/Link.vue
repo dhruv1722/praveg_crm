@@ -70,7 +70,34 @@
 import Autocomplete from '@/components/frappe-ui/Autocomplete.vue'
 import { watchDebounced } from '@vueuse/core'
 import { createResource } from 'frappe-ui'
-import { useAttrs, computed, ref } from 'vue'
+import { inject, useAttrs, computed, ref } from 'vue'
+
+const parentDoc = inject('parentDoc', null)
+
+const resolvedHotelProperty = computed(() => {
+  return parentDoc?.value?.custom_hotel_property || null
+})
+
+const activeFilters = computed(() => {
+  if (
+    props.doctype === 'CRM Property Room Category' &&
+    resolvedHotelProperty.value
+  ) {
+    return {
+      hotel_property: resolvedHotelProperty.value
+    }
+  }
+
+  if (
+    props.doctype === 'CRM Property Meal Plan' &&
+    resolvedHotelProperty.value
+  ) {
+    return {
+      hotel_property: resolvedHotelProperty.value
+    }
+  }
+  return props.filters
+})
 
 const props = defineProps({
   doctype: {
@@ -128,7 +155,7 @@ watchDebounced(
 )
 
 watchDebounced(
-  () => props.filters,
+  () => activeFilters.value,
   () => {
     reload('', true)
   },
@@ -142,7 +169,7 @@ const options = createResource({
   params: {
     txt: text.value,
     doctype: props.doctype,
-    filters: props.filters,
+    filters: activeFilters.value,
   },
   transform: (data) => {
     let allData = data.map((option) => {
@@ -162,21 +189,21 @@ const options = createResource({
   },
 })
 
-function reload(val, force = false) {
+function reload(val, force=false) {
   if (!props.doctype) return
   if (
     !force &&
     options.data?.length &&
     val === options.params?.txt &&
     props.doctype === options.params?.doctype
-  )
+  ) 
     return
 
   options.update({
     params: {
       txt: val,
       doctype: props.doctype,
-      filters: props.filters,
+      filters: activeFilters.value,
     },
   })
   options.reload()
@@ -196,6 +223,4 @@ const labelClasses = computed(() => {
     'text-ink-gray-5',
   ]
 })
-
-defineExpose({ reload })
 </script>
