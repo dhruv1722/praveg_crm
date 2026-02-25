@@ -122,17 +122,10 @@
                 </div>
               </Tooltip>
               <div class="flex gap-1.5">
-                <Button
-                  v-if="callEnabled"
-                  :tooltip="__('Make a call')"
-                  :icon="PhoneIcon"
-                  @click="
-                    () =>
-                      doc.mobile_no
-                        ? makeCall(doc.mobile_no)
-                        : toast.error(__('No phone number set'))
-                  "
-                />
+                <Button :tooltip="__('Make a call')" :icon="PhoneIcon" :loading="isCallInProgress"
+                  @click="makeSmartFlowCall" />
+
+                <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
                 <Button
                   :tooltip="__('Send an email')"
@@ -282,6 +275,7 @@ import {
 import { ref, computed, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
+import { useSmartflowCallStore } from "@/stores/smartflow"
 
 const { brand } = getSettings()
 const { $dialog, $socket, makeCall } = globalStore()
@@ -312,6 +306,64 @@ const { triggerOnChange, assignees, permissions, document, scripts, error } =
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
+
+
+
+const callStore = useSmartflowCallStore()
+
+const isCallInProgress = ref(false)
+
+async function makeSmartFlowCall() {
+
+  if (!doc.value.mobile_no) {
+    toast.error(__('No phone number set'))
+    return
+  }
+
+  isCallInProgress.value = true
+
+  try {
+    const result = await call('praveg.api.smartflow.make_call', {
+      to_number: doc.value.mobile_no,
+      reference_doctype: 'CRM Lead',
+      reference_docname: props.leadId
+    })
+
+    if (result.success) {
+      const callId = result.call_id
+      sessionStorage.setItem('sf_active_call_id', callId)
+      callStore.open(callId, doc.value.mobile_no, doc.value.lead_name)
+    } else {
+      toast.error(result.message || __('Failed to initiate call'))
+    }
+
+  } catch (err) {
+    toast.error(__('Error initiating call'))
+    console.error('SmartFlow call error:', err)
+  } finally {
+    isCallInProgress.value = false
+  }
+}
+
+async function openWhatsApp() {
+
+  if (!doc.value.mobile_no) return
+
+  let phone = doc.value.mobile_no.replace(/\D/g, '')
+
+  if (phone.length === 10) {
+    phone = `91${phone}`
+  }
+
+  if (phone.length < 11) {
+    console.error("Invalid phone number")
+    return
+  }
+
+  openWebsite(
+    `https://wa.me/${phone}`
+  )
+}
 
 watch(error, (err) => {
   if (err) {

@@ -8,26 +8,12 @@
       </Breadcrumbs>
     </template>
     <template v-if="!errorTitle" #right-header>
-      <CustomActions
-        v-if="document._actions?.length"
-        :actions="document._actions"
-      />
-      <CustomActions
-        v-if="document.actions?.length"
-        :actions="document.actions"
-      />
+      <CustomActions v-if="document._actions?.length" :actions="document._actions" />
+      <CustomActions v-if="document.actions?.length" :actions="document.actions" />
       <AssignTo v-model="assignees.data" doctype="CRM Deal" :docname="dealId" />
-      <Dropdown
-        v-if="doc && document.statuses"
-        :options="statuses"
-        placement="right"
-      >
+      <Dropdown v-if="doc && document.statuses" :options="statuses" placement="right">
         <template #default="{ open }">
-          <Button
-            v-if="doc.status"
-            :label="doc.status"
-            :iconRight="open ? 'chevron-up' : 'chevron-down'"
-          >
+          <Button v-if="doc.status" :label="doc.status" :iconRight="open ? 'chevron-up' : 'chevron-down'">
             <template #prefix>
               <IndicatorIcon :class="getDealStatus(doc.status).color" />
             </template>
@@ -37,41 +23,22 @@
     </template>
   </LayoutHeader>
   <div v-if="doc.name" class="flex h-full overflow-hidden">
-    <Tabs
-      as="div"
-      v-model="tabIndex"
-      :tabs="tabs"
-      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tablist']]:px-5 [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow"
-    >
+    <Tabs as="div" v-model="tabIndex" :tabs="tabs"
+      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tablist']]:px-5 [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow">
       <template #tab-panel>
-        <Activities
-          ref="activities"
-          doctype="CRM Deal"
-          :docname="dealId"
-          :tabs="tabs"
-          v-model:reload="reload"
-          v-model:tabIndex="tabIndex"
-          @beforeSave="beforeStatusChange"
-          @afterSave="reloadAssignees"
-        />
+        <Activities ref="activities" doctype="CRM Deal" :docname="dealId" :tabs="tabs" v-model:reload="reload"
+          v-model:tabIndex="tabIndex" @beforeSave="beforeStatusChange" @afterSave="reloadAssignees" />
       </template>
     </Tabs>
     <Resizer side="right" class="flex flex-col justify-between border-l">
-      <div
-        class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
-        @click="copyToClipboard(dealId)"
-      >
+      <div class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
+        @click="copyToClipboard(dealId)">
         {{ __(dealId) }}
       </div>
       <div class="flex items-center justify-start gap-5 border-b p-5">
         <Tooltip :text="__('Organization logo')">
           <div class="group relative size-12">
-            <Avatar
-              size="3xl"
-              class="size-12"
-              :label="title"
-              :image="organization?.organization_logo"
-            />
+            <Avatar size="3xl" class="size-12" :label="title" :image="organization?.organization_logo" />
           </div>
         </Tooltip>
         <div class="flex flex-col gap-2.5 truncate text-ink-gray-9">
@@ -81,199 +48,105 @@
             </div>
           </Tooltip>
           <div class="flex gap-1.5">
-            <Button
-              v-if="callEnabled"
-              :tooltip="__('Make a call')"
-              :icon="PhoneIcon"
-              @click="triggerCall"
-            />
+            <Button :tooltip="__('Make a call')" :icon="PhoneIcon" :loading="isCallInProgress"
+              @click="makeSmartFlowCall" />
 
-            <Button
-              :tooltip="__('Send an email')"
-              :icon="Email2Icon"
-              @click="
-                doc.email ? openEmailBox() : toast.error(__('No email set'))
-              "
-            />
+            <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
-            <Button
-              :tooltip="__('Go to website')"
-              :icon="LinkIcon"
-              @click="
-                doc.website
-                  ? openWebsite(doc.website)
-                  : toast.error(__('No website set'))
-              "
-            />
 
-            <Button
-              :tooltip="__('Attach a file')"
-              :icon="AttachmentIcon"
-              @click="showFilesUploader = true"
-            />
+            <Button :tooltip="__('Send an email')" :icon="Email2Icon" @click="
+              doc.email ? openEmailBox() : toast.error(__('No email set'))
+              " />
 
-            <Button
-              v-if="canDelete"
-              :tooltip="__('Delete')"
-              variant="subtle"
-              icon="trash-2"
-              theme="red"
-              @click="deleteDeal"
-            />
+            <Button :tooltip="__('Go to website')" :icon="LinkIcon" @click="
+              doc.website
+                ? openWebsite(doc.website)
+                : toast.error(__('No website set'))
+              " />
+
+            <Button :tooltip="__('Attach a file')" :icon="AttachmentIcon" @click="showFilesUploader = true" />
+
+            <Button v-if="canDelete" :tooltip="__('Delete')" variant="subtle" icon="trash-2" theme="red"
+              @click="deleteDeal" />
           </div>
         </div>
       </div>
-      <SLASection
-        v-if="doc.sla_status"
-        v-model="doc"
-        @updateField="updateField"
-      />
-      <div
-        v-if="sections.data"
-        class="flex flex-1 flex-col justify-between overflow-hidden"
-      >
-        <SidePanelLayout
-          :sections="sections.data"
-          :addContact="addContact"
-          doctype="CRM Deal"
-          :docname="dealId"
-          @reload="sections.reload"
-          @beforeFieldChange="beforeStatusChange"
-          @afterFieldChange="reloadAssignees"
-        >
+      <SLASection v-if="doc.sla_status" v-model="doc" @updateField="updateField" />
+      <div v-if="sections.data" class="flex flex-1 flex-col justify-between overflow-hidden">
+        <SidePanelLayout :sections="sections.data" :addContact="addContact" doctype="CRM Deal" :docname="dealId"
+          @reload="sections.reload" @beforeFieldChange="beforeStatusChange" @afterFieldChange="reloadAssignees">
           <template #actions="{ section }">
             <div v-if="section.name == 'contacts_section'" class="pr-2">
-              <Link
-                value=""
-                doctype="Contact"
-                @change="(e) => addContact(e)"
-                :onCreate="
-                  (value, close) => {
-                    _contact = {
-                      first_name: value,
-                      company_name: doc.organization,
-                    }
-                    showContactModal = true
-                    close()
-                  }
-                "
-              >
+              <Link value="" doctype="Contact" @change="(e) => addContact(e)" :onCreate="(value, close) => {
+                _contact = {
+                  first_name: value,
+                  company_name: doc.organization,
+                }
+                showContactModal = true
+                close()
+              }
+                ">
                 <template #target="{ togglePopover }">
-                  <Button
-                    class="h-7 px-3"
-                    variant="ghost"
-                    icon="plus"
-                    @click="togglePopover()"
-                  />
+                  <Button class="h-7 px-3" variant="ghost" icon="plus" @click="togglePopover()" />
                 </template>
               </Link>
             </div>
           </template>
           <template #default="{ section }">
-            <div
-              v-if="section.name == 'contacts_section'"
-              class="contacts-area"
-            >
-              <div
-                v-if="dealContacts?.loading && dealContacts?.data?.length == 0"
-                class="flex min-h-20 flex-1 items-center justify-center gap-3 text-base text-ink-gray-4"
-              >
+            <div v-if="section.name == 'contacts_section'" class="contacts-area">
+              <div v-if="dealContacts?.loading && dealContacts?.data?.length == 0"
+                class="flex min-h-20 flex-1 items-center justify-center gap-3 text-base text-ink-gray-4">
                 <LoadingIndicator class="h-4 w-4" />
                 <span>{{ __('Loading...') }}</span>
               </div>
-              <div
-                v-else-if="dealContacts?.data?.length"
-                v-for="(contact, i) in dealContacts.data"
-                :key="contact.name"
-              >
+              <div v-else-if="dealContacts?.data?.length" v-for="(contact, i) in dealContacts.data" :key="contact.name">
                 <div class="px-2 pb-2.5" :class="[i == 0 ? 'pt-5' : 'pt-2.5']">
                   <CollapsibleSection :opened="contact.opened">
                     <template #header="{ opened, toggle }">
                       <div
-                        class="flex cursor-pointer items-center justify-between gap-2 pr-1 text-base leading-5 text-ink-gray-7"
-                      >
-                        <div
-                          class="flex h-7 items-center gap-2 truncate"
-                          @click="toggle()"
-                        >
-                          <Avatar
-                            :label="contact.full_name"
-                            :image="contact.image"
-                            size="md"
-                          />
+                        class="flex cursor-pointer items-center justify-between gap-2 pr-1 text-base leading-5 text-ink-gray-7">
+                        <div class="flex h-7 items-center gap-2 truncate" @click="toggle()">
+                          <Avatar :label="contact.full_name" :image="contact.image" size="md" />
                           <div class="truncate">
                             {{ contact.full_name }}
                           </div>
-                          <Badge
-                            v-if="contact.is_primary"
-                            class="ml-2"
-                            variant="outline"
-                            :label="__('Primary')"
-                            theme="green"
-                          />
+                          <Badge v-if="contact.is_primary" class="ml-2" variant="outline" :label="__('Primary')"
+                            theme="green" />
                         </div>
                         <div class="flex items-center">
                           <Dropdown :options="contactOptions(contact)">
-                            <Button
-                              icon="more-horizontal"
-                              class="text-ink-gray-5"
-                              variant="ghost"
-                            />
+                            <Button icon="more-horizontal" class="text-ink-gray-5" variant="ghost" />
                           </Dropdown>
-                          <Button
-                            variant="ghost"
-                            :tooltip="__('View contact')"
-                            :icon="ArrowUpRightIcon"
-                            @click="
-                              router.push({
-                                name: 'Contact',
-                                params: { contactId: contact.name },
-                              })
-                            "
-                          />
-                          <Button
-                            variant="ghost"
-                            class="transition-all duration-300 ease-in-out"
-                            :class="{ 'rotate-90': opened }"
-                            icon="chevron-right"
-                            @click="toggle()"
-                          />
+                          <Button variant="ghost" :tooltip="__('View contact')" :icon="ArrowUpRightIcon" @click="
+                            router.push({
+                              name: 'Contact',
+                              params: { contactId: contact.name },
+                            })
+                            " />
+                          <Button variant="ghost" class="transition-all duration-300 ease-in-out"
+                            :class="{ 'rotate-90': opened }" icon="chevron-right" @click="toggle()" />
                         </div>
                       </div>
                     </template>
                     <div class="flex flex-col gap-1.5 text-base">
-                      <div
-                        v-if="contact.email"
-                        class="flex items-center gap-3 pb-1.5 pl-1 pt-4 text-ink-gray-8"
-                      >
+                      <div v-if="contact.email" class="flex items-center gap-3 pb-1.5 pl-1 pt-4 text-ink-gray-8">
                         <Email2Icon class="h-4 w-4" />
                         {{ contact.email }}
                       </div>
-                      <div
-                        v-if="contact.mobile_no"
-                        class="flex items-center gap-3 p-1 py-1.5 text-ink-gray-8"
-                      >
+                      <div v-if="contact.mobile_no" class="flex items-center gap-3 p-1 py-1.5 text-ink-gray-8">
                         <PhoneIcon class="h-4 w-4" />
                         {{ contact.mobile_no }}
                       </div>
-                      <div
-                        v-if="!contact.email && !contact.mobile_no"
-                        class="flex items-center justify-center py-4 text-sm text-ink-gray-4"
-                      >
+                      <div v-if="!contact.email && !contact.mobile_no"
+                        class="flex items-center justify-center py-4 text-sm text-ink-gray-4">
                         {{ __('No details added') }}
                       </div>
                     </div>
                   </CollapsibleSection>
                 </div>
-                <div
-                  v-if="i != dealContacts.data.length - 1"
-                  class="mx-2 h-px border-t border-outline-gray-modals"
-                />
+                <div v-if="i != dealContacts.data.length - 1" class="mx-2 h-px border-t border-outline-gray-modals" />
               </div>
-              <div
-                v-else
-                class="flex h-20 items-center justify-center text-base text-ink-gray-5"
-              >
+              <div v-else class="flex h-20 items-center justify-center text-base text-ink-gray-5">
                 {{ __('No contacts added') }}
               </div>
             </div>
@@ -282,53 +155,24 @@
       </div>
     </Resizer>
   </div>
-  <ErrorPage
-    v-else-if="errorTitle"
-    :errorTitle="errorTitle"
-    :errorMessage="errorMessage"
-  />
-  <OrganizationModal
-    v-if="showOrganizationModal"
-    v-model="showOrganizationModal"
-    :data="_organization"
-    :options="{
-      redirect: false,
-      afterInsert: (_doc) => updateField('organization', _doc.name),
-    }"
-  />
-  <ContactModal
-    v-if="showContactModal"
-    v-model="showContactModal"
-    :contact="_contact"
-    :options="{
-      redirect: false,
-      afterInsert: (_doc) => addContact(_doc.name),
-    }"
-  />
-  <FilesUploader
-    v-model="showFilesUploader"
-    doctype="CRM Deal"
-    :docname="dealId"
-    @after="
-      () => {
-        activities?.all_activities?.reload()
-        changeTabTo('attachments')
-      }
-    "
-  />
-  <DeleteLinkedDocModal
-    v-if="showDeleteLinkedDocModal"
-    v-model="showDeleteLinkedDocModal"
-    :doctype="'CRM Deal'"
-    :docname="dealId"
-    name="Deals"
-  />
-  <LostReasonModal
-    v-if="showLostReasonModal"
-    v-model="showLostReasonModal"
-    doctype="CRM Deal"
-    :document="document"
-  />
+  <ErrorPage v-else-if="errorTitle" :errorTitle="errorTitle" :errorMessage="errorMessage" />
+  <OrganizationModal v-if="showOrganizationModal" v-model="showOrganizationModal" :data="_organization" :options="{
+    redirect: false,
+    afterInsert: (_doc) => updateField('organization', _doc.name),
+  }" />
+  <ContactModal v-if="showContactModal" v-model="showContactModal" :contact="_contact" :options="{
+    redirect: false,
+    afterInsert: (_doc) => addContact(_doc.name),
+  }" />
+  <FilesUploader v-model="showFilesUploader" doctype="CRM Deal" :docname="dealId" @after="
+    () => {
+      activities?.all_activities?.reload()
+      changeTabTo('attachments')
+    }
+  " />
+  <DeleteLinkedDocModal v-if="showDeleteLinkedDocModal" v-model="showDeleteLinkedDocModal" :doctype="'CRM Deal'"
+    :docname="dealId" name="Deals" />
+  <LostReasonModal v-if="showLostReasonModal" v-model="showLostReasonModal" doctype="CRM Deal" :document="document" />
 </template>
 <script setup>
 import DeleteLinkedDocModal from '@/components/DeleteLinkedDocModal.vue'
@@ -394,6 +238,7 @@ import {
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
+import { useSmartflowCallStore } from "@/stores/smartflow"
 
 const { brand } = getSettings()
 const { $dialog, $socket, makeCall } = globalStore()
@@ -423,6 +268,63 @@ const { triggerOnChange, assignees, permissions, document, scripts, error } =
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
+
+const callStore = useSmartflowCallStore()
+
+const isCallInProgress = ref(false)
+
+async function makeSmartFlowCall() {
+
+  if (!doc.value.mobile_no) {
+    toast.error(__('No phone number set'))
+    return
+  }
+
+  isCallInProgress.value = true
+
+  try {
+    const result = await call('praveg.api.smartflow.make_call', {
+      to_number: doc.value.mobile_no,
+      reference_doctype: 'CRM Lead',
+      reference_docname: props.leadId
+    })
+
+    if (result.success) {
+      const callId = result.call_id
+      sessionStorage.setItem('sf_active_call_id', callId)
+      callStore.open(callId, doc.value.mobile_no, doc.value.lead_name)
+    } else {
+      toast.error(result.message || __('Failed to initiate call'))
+    }
+
+  } catch (err) {
+    toast.error(__('Error initiating call'))
+    console.error('SmartFlow call error:', err)
+  } finally {
+    isCallInProgress.value = false
+  }
+}
+
+async function openWhatsApp() {
+
+  if (!doc.value.mobile_no) return
+
+  let phone = doc.value.mobile_no.replace(/\D/g, '')
+
+  if (phone.length === 10) {
+    phone = `91${phone}`
+  }
+
+  if (phone.length < 11) {
+    console.error("Invalid phone number")
+    return
+  }
+
+  openWebsite(
+    `https://wa.me/${phone}`
+  )
+}
+
 
 watch(error, (err) => {
   if (err) {
