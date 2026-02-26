@@ -1,58 +1,30 @@
 <template>
-  <div
-    class="my-3 flex items-center justify-between text-lg font-medium sm:mb-4 sm:mt-8"
-  >
+  <div class="my-3 flex items-center justify-between text-lg font-medium sm:mb-4 sm:mt-8">
     <div class="flex h-8 items-center text-xl font-semibold text-ink-gray-8">
       {{ __('Data') }}
-      <Badge
-        v-if="document.isDirty"
-        class="ml-3"
-        :label="'Not Saved'"
-        theme="orange"
-      />
+      <Badge v-if="document.isDirty" class="ml-3" :label="'Not Saved'" theme="orange" />
     </div>
     <div class="flex gap-1">
-      <Button
-        v-if="isManager() && !isMobileView"
-        :tooltip="__('Edit fields layout')"
-        :icon="EditIcon"
-        @click="showDataFieldsModal = true"
-      />
-      <Button
-        label="Save"
-        :disabled="!document.isDirty"
-        variant="solid"
-        :loading="document.save.loading"
-        @click="saveChanges"
-      />
+      <Button v-if="isManager() && !isMobileView" :tooltip="__('Edit fields layout')" :icon="EditIcon"
+        @click="showDataFieldsModal = true" />
+      <Button label="Save" :disabled="!document.isDirty" variant="solid" :loading="document.save.loading"
+        @click="saveChanges" />
     </div>
   </div>
-  <div
-    v-if="document.get.loading"
-    class="flex flex-1 flex-col items-center justify-center gap-3 text-xl font-medium text-ink-gray-6"
-  >
+  <div v-if="document.get.loading"
+    class="flex flex-1 flex-col items-center justify-center gap-3 text-xl font-medium text-ink-gray-6">
     <LoadingIndicator class="h-6 w-6" />
     <span>{{ __('Loading...') }}</span>
   </div>
   <div v-else class="pb-8">
-    <FieldLayout
-      v-if="tabs.data"
-      :tabs="tabs.data"
-      :data="document.doc"
-      :doctype="doctype"
-    />
+    <FieldLayout v-if="tabs.data" :tabs="tabs.data" :data="document.doc" :doctype="doctype" />
   </div>
-  <DataFieldsModal
-    v-if="showDataFieldsModal"
-    v-model="showDataFieldsModal"
-    :doctype="doctype"
-    @reload="
-      () => {
-        tabs.reload()
-        document.reload()
-      }
-    "
-  />
+  <DataFieldsModal v-if="showDataFieldsModal" v-model="showDataFieldsModal" :doctype="doctype" @reload="
+    () => {
+      tabs.reload()
+      document.reload()
+    }
+  " />
 </template>
 
 <script setup>
@@ -88,12 +60,56 @@ const showDataFieldsModal = ref(false)
 
 const { document } = useDocument(props.doctype, props.docname)
 
+const FOLLOW_UP_2_FIELDS = new Set([
+  'custom_follow_up_2',
+  'custom_follow_up_date_2',
+  'custom_follow_up_remarks_2',
+])
+
+const FOLLOW_UP_DOCTYPES = new Set(['CRM Lead', 'CRM Deal'])
+
+function shouldShowFollowUp2BySavedValue() {
+  if (!FOLLOW_UP_DOCTYPES.has(props.doctype)) return true
+  return Number(document.originalDoc?.custom_follow_up_1 || 0) === 1
+}
+
+function applyFollowUp2Visibility(tabsData) {
+  if (!FOLLOW_UP_DOCTYPES.has(props.doctype) || !Array.isArray(tabsData)) return
+
+  const showFollowUp2 = shouldShowFollowUp2BySavedValue()
+
+  tabsData.forEach((tab) => {
+    tab.sections?.forEach((section) => {
+      section.columns?.forEach((column) => {
+        column.fields?.forEach((field) => {
+          if (FOLLOW_UP_2_FIELDS.has(field.fieldname)) {
+            field.hidden = showFollowUp2 ? 0 : 1
+          }
+        })
+      })
+    })
+  })
+}
+
 const tabs = createResource({
   url: 'crm.fcrm.doctype.crm_fields_layout.crm_fields_layout.get_fields_layout',
   cache: ['DataFields', props.doctype],
   params: { doctype: props.doctype, type: 'Data Fields' },
   auto: true,
+  transform: (_tabs) => {
+    applyFollowUp2Visibility(_tabs)
+    return _tabs
+  },
 })
+
+watch(
+  () => document.originalDoc?.custom_follow_up_1,
+  () => {
+    if (!tabs.data) return
+    applyFollowUp2Visibility(tabs.data)
+  },
+)
+
 
 function saveChanges() {
   if (!document.isDirty) return
@@ -135,3 +151,5 @@ watch(
   { deep: true },
 )
 </script>
+
+<!-- Customization added in this file -->
