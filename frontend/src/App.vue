@@ -67,10 +67,10 @@ function handleCallUpdate(data) {
   }
 
   if (callStore.isOpen && callStore.callId === data.call_id) {
-    callStore.updateStatus(data.status)
+    // callStore.updateStatus(data.status)
   } else if (!callStore.isOpen) {
     callStore.open(data.call_id, data.to, null)
-    callStore.updateStatus(data.status)
+    // callStore.updateStatus(data.status)
   }
 
   forceCloseAfter7Sec()
