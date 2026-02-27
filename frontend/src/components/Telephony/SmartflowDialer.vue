@@ -12,9 +12,9 @@
         </div>
 
         <!-- Avatar -->
-        <div class="sf-avatar">
+        <!-- <div class="sf-avatar">
           <span>{{ avatarText }}</span>
-        </div>
+        </div> -->
 
         <!-- Lead name -->
         <div class="sf-lead-name">{{ store.leadName }}</div>

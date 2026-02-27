@@ -54,6 +54,9 @@
             <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
 
+            <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
+
+
             <Button :tooltip="__('Send an email')" :icon="Email2Icon" @click="
               doc.email ? openEmailBox() : toast.error(__('No email set'))
               " />
@@ -283,16 +286,15 @@ async function makeSmartFlowCall() {
   isCallInProgress.value = true
 
   try {
-    const result = await call('praveg.api.smartflow.make_call', {
+    const result = await call('shayona_crm.api.smartflow.make_call', {
       to_number: doc.value.mobile_no,
-      reference_doctype: 'CRM Lead',
-      reference_docname: props.leadId
+      reference_doctype: 'CRM Deal',
+      reference_docname: props.dealId
     })
-
     if (result.success) {
       const callId = result.call_id
       sessionStorage.setItem('sf_active_call_id', callId)
-      callStore.open(callId, doc.value.mobile_no, doc.value.lead_name)
+      callStore.open(callId, doc.value.mobile_no, doc.value.first_name)
     } else {
       toast.error(result.message || __('Failed to initiate call'))
     }
@@ -303,6 +305,29 @@ async function makeSmartFlowCall() {
   } finally {
     isCallInProgress.value = false
   }
+}
+
+
+async function openWhatsApp() {
+
+  if (!doc.value.mobile_no) return
+
+  let phone = doc.value.mobile_no.replace(/\D/g, '')
+
+  if (phone.length === 10) {
+    phone = `91${phone}`
+  }
+
+  if (phone.length < 11) {
+    console.error("Invalid phone number")
+    return
+  }
+
+  const message = ``
+
+  const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+
+  window.open(url, '_blank')
 }
 
 async function openWhatsApp() {

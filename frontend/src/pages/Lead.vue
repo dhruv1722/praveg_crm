@@ -360,9 +360,11 @@ async function openWhatsApp() {
     return
   }
 
-  openWebsite(
-    `https://wa.me/${phone}`
-  )
+  const message = ``
+
+  const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+
+  window.open(url, '_blank')
 }
 
 watch(error, (err) => {
