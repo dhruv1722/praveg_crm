@@ -330,26 +330,6 @@ async function openWhatsApp() {
   window.open(url, '_blank')
 }
 
-async function openWhatsApp() {
-
-  if (!doc.value.mobile_no) return
-
-  let phone = doc.value.mobile_no.replace(/\D/g, '')
-
-  if (phone.length === 10) {
-    phone = `91${phone}`
-  }
-
-  if (phone.length < 11) {
-    console.error("Invalid phone number")
-    return
-  }
-
-  openWebsite(
-    `https://wa.me/${phone}`
-  )
-}
-
 
 watch(error, (err) => {
   if (err) {
