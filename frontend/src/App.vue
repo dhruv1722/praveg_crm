@@ -77,20 +77,58 @@ function handleCallUpdate(data) {
 /* ---------------- Socket Setup ---------------- */
 
 function registerSocketEvents(socket) {
+  console.error('registerSocketEvents called. connected=', socket.connected)
+
+  if (!socket.__hasAnyLogger) {
+    socket.__hasAnyLogger = true
+    socket.onAny((event, payload) => {
+      console.error('SOCKET ANY:', event, payload)
+    })
+  }
   socket.off('smartflo_call_update', handleCallUpdate)
   socket.on('smartflo_call_update', handleCallUpdate)
 }
 
+// onMounted(() => {
+//   const { $socket } = globalStore()
+//   if (!$socket) return
+//   console.error("SOCKET CONNECTED?", $socket.connected, "id=", $socket.id)
+//   if ($socket.connected) {
+//     registerSocketEvents($socket)
+//   } else {
+//     $socket.on('connect', () => registerSocketEvents($socket))
+//   }
+// })
+
+
 onMounted(() => {
+  console.log('onMounted 1');
   const { $socket } = globalStore()
   if (!$socket) return
-
+  console.error("SOCKET CONNECTED?", $socket.connected, "id=", $socket.id)
+  console.log('onMounted 2');
+  window.__socket = $socket
+  const onConnect = () => registerSocketEvents($socket)
+  console.log('onMounted 3');
   if ($socket.connected) {
-    registerSocketEvents($socket)
+    onConnect()
+    console.log('onMounted 4');
   } else {
-    $socket.on('connect', () => registerSocketEvents($socket))
+    console.log('onMounted 5');
+    // ensure connect handler is not duplicated
+    $socket.off('connect', onConnect)
+    $socket.on('connect', onConnect)
   }
 })
+
+onBeforeUnmount(() => {
+    console.log('onBeforeUnmount 1');
+  const { $socket } = globalStore()
+  if (!$socket) return
+    console.log('onBeforeUnmount 2');
+  $socket.off('smartflo_call_update', handleCallUpdate)
+})
+
 
 
 /* ---------------- Timezone Config ---------------- */
