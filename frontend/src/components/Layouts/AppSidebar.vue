@@ -68,7 +68,7 @@
     </div>
     <Notifications />
     <Settings />
-    <HelpModal v-if="showHelpModal" v-model="showHelpModal" v-model:articles="articles" :logo="CRMLogo"
+    <HelpModal v-if="showHelpModal" v-model="showHelpModal" v-model:articles="articles" :title="onboardingTitle" :logo="CRMLogo"
       :afterSkip="(step) => capture('onboarding_step_skipped_' + step)"
       :afterSkipAll="() => capture('onboarding_steps_skipped')"
       :afterReset="(step) => capture('onboarding_step_reset_' + step)"
@@ -128,6 +128,7 @@ import {
 import router from '@/router'
 import { useStorage } from '@vueuse/core'
 import { ref, reactive, computed, markRaw, onMounted } from 'vue'
+import { getSettings } from '@/stores/settings'
 
 const { getPinnedViews, getPublicViews } = viewsStore()
 const { toggle: toggleNotificationPanel } = notificationsStore()
@@ -261,6 +262,10 @@ function getIcon(routeName, icon) {
 // onboarding
 const { user } = sessionStore()
 const { users, isManager } = usersStore()
+
+const { brand } = getSettings()
+const onboardingTitle = computed(() => brand.name || 'Frappe CRM')
+
 const { isOnboardingStepsCompleted, setUp } = useOnboarding('frappecrm')
 
 async function getFirstLead() {
