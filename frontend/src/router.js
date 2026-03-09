@@ -85,6 +85,18 @@ const routes = [
     component: () => import('@/pages/CallLogs.vue'),
   },
   {
+    alias: '/ai-leads',
+    path: '/ai-leads/view/:viewType?',
+    name: 'AI Leads',
+    component: () => import('@/pages/AiLeads.vue'),
+  },
+  {
+    path: '/ai-leads/:aiLeadId',
+    name: 'AI Lead',
+    component: () => import(`@/pages/${handleMobileView('AiLead')}.vue`),
+    props: true,
+  },
+  {
     path: '/calendar',
     name: 'Calendar',
     component: () => import('@/pages/Calendar.vue'),

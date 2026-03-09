@@ -10,7 +10,7 @@
     <template v-if="!errorTitle" #right-header>
       <CustomActions v-if="document._actions?.length" :actions="document._actions" />
       <CustomActions v-if="document.actions?.length" :actions="document.actions" />
-      <AssignTo v-model="assignees.data" doctype="CRM Lead" :docname="leadId" />
+      <AssignTo v-model="assignees.data" doctype="AI Leads" :docname="aiLeadId" />
       <Dropdown v-if="doc && document.statuses" :options="statuses" placement="right">
         <template #default="{ open }">
           <Button v-if="doc.status" :label="doc.status" :iconRight="open ? 'chevron-up' : 'chevron-down'">
@@ -27,14 +27,14 @@
     <Tabs v-model="tabIndex" :tabs="tabs"
       class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tablist']]:px-5 [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow">
       <template #tab-panel>
-        <Activities ref="activities" doctype="CRM Lead" :docname="leadId" :tabs="tabs" v-model:reload="reload"
+        <AiActivities ref="aiactivities" doctype="AI Leads" :docname="aiLeadId" :tabs="tabs" v-model:reload="reload"
           v-model:tabIndex="tabIndex" @beforeSave="beforeStatusChange" @afterSave="reloadAssignees" />
       </template>
     </Tabs>
     <Resizer class="flex flex-col justify-between border-l" side="right">
       <div class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
-        @click="copyToClipboard(leadId)">
-        {{ __(leadId) }}
+        @click="copyToClipboard(aiLeadId)">
+        {{ __(aiLeadId) }}
       </div>
       <FileUploader @success="(file) => updateField('image', file.file_url)" :validateFile="validateIsImageFile">
         <template #default="{ openFileSelector, error }">
@@ -77,6 +77,7 @@
                 </div>
               </Tooltip>
               <div class="flex gap-1.5">
+
                 <Button :tooltip="__('Make a call')" :icon="PhoneIcon" :loading="isCallInProgress"
                   @click="makeSmartFlowCall" />
 
@@ -103,22 +104,22 @@
       </FileUploader>
       <SLASection v-if="doc.sla_status" v-model="doc" @updateField="updateField" />
       <div v-if="sections.data" class="flex flex-1 flex-col justify-between overflow-hidden">
-        <SidePanelLayout :sections="sections.data" doctype="CRM Lead" :docname="leadId" @reload="sections.reload"
+        <SidePanelLayout :sections="sections.data" doctype="AI Leads" :docname="aiLeadId" @reload="sections.reload"
           @beforeFieldChange="beforeStatusChange" @afterFieldChange="reloadAssignees" />
       </div>
     </Resizer>
   </div>
   <ErrorPage v-else-if="errorTitle" :errorTitle="errorTitle" :errorMessage="errorMessage" />
   <ConvertToDealModal v-if="showConvertToDealModal" v-model="showConvertToDealModal" :lead="doc" />
-  <FilesUploader v-model="showFilesUploader" doctype="CRM Lead" :docname="leadId" @after="
+  <FilesUploader v-model="showFilesUploader" doctype="AI Leads" :docname="aiLeadId" @after="
     () => {
-      activities?.all_activities?.reload()
+      aiactivities?.all_activities?.reload()
       changeTabTo('attachments')
     }
   " />
-  <DeleteLinkedDocModal v-if="showDeleteLinkedDocModal" v-model="showDeleteLinkedDocModal" :doctype="'CRM Lead'"
-    :docname="leadId" name="Leads" />
-  <LostReasonModal v-if="showLostReasonModal" v-model="showLostReasonModal" doctype="CRM Lead" :document="document" />
+  <DeleteLinkedDocModal v-if="showDeleteLinkedDocModal" v-model="showDeleteLinkedDocModal" :doctype="'AI Leads'"
+    :docname="aiLeadId" name="Leads" />
+  <LostReasonModal v-if="showLostReasonModal" v-model="showLostReasonModal" doctype="AI Leads" :document="document" />
 </template>
 <script setup>
 import DeleteLinkedDocModal from '@/components/DeleteLinkedDocModal.vue'
@@ -130,7 +131,6 @@ import EmailIcon from '@/components/Icons/EmailIcon.vue'
 import Email2Icon from '@/components/Icons/Email2Icon.vue'
 import CommentIcon from '@/components/Icons/CommentIcon.vue'
 import DetailsIcon from '@/components/Icons/DetailsIcon.vue'
-import EventIcon from '@/components/Icons/EventIcon.vue'
 import PhoneIcon from '@/components/Icons/PhoneIcon.vue'
 import TaskIcon from '@/components/Icons/TaskIcon.vue'
 import NoteIcon from '@/components/Icons/NoteIcon.vue'
@@ -141,7 +141,7 @@ import LinkIcon from '@/components/Icons/LinkIcon.vue'
 import AttachmentIcon from '@/components/Icons/AttachmentIcon.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
-import Activities from '@/components/Activities/Activities.vue'
+import AiActivities from '@/components/Activities/AiActivities.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
@@ -160,7 +160,7 @@ import { globalStore } from '@/stores/global'
 import { statusesStore } from '@/stores/statuses'
 import { getMeta } from '@/stores/meta'
 import { useDocument } from '@/data/document'
-import { whatsappEnabled } from '@/composables/settings'
+// callEnabled removed — using SmartFlow directly
 import {
   createResource,
   FileUploader,
@@ -174,27 +174,28 @@ import {
   toast,
 } from 'frappe-ui'
 import { ref, computed, watch, nextTick } from 'vue'
+import { useSmartflowCallStore } from "@/stores/smartflow"
+
 import { useRouter, useRoute } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
-import { useSmartflowCallStore } from "@/stores/smartflow"
 
 const { brand } = getSettings()
 const { $dialog, $socket } = globalStore()
 const { statusOptions, getLeadStatus } = statusesStore()
-const { doctypeMeta } = getMeta('CRM Lead')
+const { doctypeMeta } = getMeta('AI Leads')
 
 const route = useRoute()
 const router = useRouter()
 
 const props = defineProps({
-  leadId: {
+  aiLeadId: {
     type: String,
     required: true,
   },
 })
 
 const reload = ref(false)
-const activities = ref(null)
+const aiactivities = ref(null)
 const errorTitle = ref('')
 const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
@@ -202,7 +203,7 @@ const showConvertToDealModal = ref(false)
 const showFilesUploader = ref(false)
 
 const { triggerOnChange, assignees, permissions, document, scripts, error } =
-  useDocument('CRM Lead', props.leadId)
+  useDocument('AI Leads', props.aiLeadId)
 
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
@@ -224,14 +225,17 @@ async function makeSmartFlowCall() {
   try {
     const result = await call('praveg.api.helpers.make_call', {
       to_number: doc.value.mobile_no,
-      reference_doctype: 'CRM Lead',
-      reference_docname: props.leadId
+      reference_doctype: 'AI Leads',
+      reference_docname: props.aiLeadId
     })
 
     if (result.success) {
       const callId = result.call_id
       sessionStorage.setItem('sf_active_call_id', callId)
-      callStore.open(callId, doc.value.mobile_no, doc.value.lead_name)
+
+      const displayName = doc.value.lead_name || [doc.value.first_name, doc.value.last_name].filter(Boolean).join(' ') || props.aiLeadId
+      callStore.open(callId, doc.value.mobile_no, displayName)
+      // callStore.open(callId, doc.value.mobile_no, doc.value.first_name)
     } else {
       toast.error(result.message || __('Failed to initiate call'))
     }
@@ -244,9 +248,13 @@ async function makeSmartFlowCall() {
   }
 }
 
+
 async function openWhatsApp() {
 
-  if (!doc.value.mobile_no) return
+  if (!doc.value.mobile_no) {
+    toast.error(__('No phone number set'))
+    return
+  }
 
   let phone = doc.value.mobile_no.replace(/\D/g, '')
 
@@ -255,13 +263,14 @@ async function openWhatsApp() {
   }
 
   if (phone.length < 11) {
-    console.error("Invalid phone number")
+    toast.error("Invalid phone number")
     return
   }
 
   const message = ``
 
-  const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+  // const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+  const url = `https://wa.me/${phone}?`
 
   window.open(url, '_blank')
 }
@@ -304,16 +313,16 @@ watch(
 )
 
 const breadcrumbs = computed(() => {
-  let items = [{ label: __('Leads'), route: { name: 'Leads' } }]
+  let items = [{ label: __('AI Leads'), route: { name: 'AI Leads' } }]
 
   if (route.query.view || route.query.viewType) {
-    let view = getView(route.query.view, route.query.viewType, 'CRM Lead')
+    let view = getView(route.query.view, route.query.viewType, 'AI Leads')
     if (view) {
       items.push({
         label: __(view.label),
         icon: view.icon,
         route: {
-          name: 'Leads',
+          name: 'AI Leads',
           params: { viewType: route.query.viewType },
           query: { view: route.query.view },
         },
@@ -323,21 +332,21 @@ const breadcrumbs = computed(() => {
 
   items.push({
     label: title.value,
-    route: { name: 'Lead', params: { leadId: props.leadId } },
+    route: { name: 'AI Lead', params: { aiLeadId: props.aiLeadId } },
   })
   return items
 })
 
 const title = computed(() => {
-  let t = doctypeMeta['CRM Lead']?.title_field || 'name'
-  return doc.value?.[t] || props.leadId
+  let t = doctypeMeta['AI Leads']?.title_field || 'name'
+  return doc.value?.[t] || props.aiLeadId
 })
 
 const statuses = computed(() => {
   let customStatuses = document.statuses?.length
     ? document.statuses
     : document._statuses || []
-  return statusOptions('lead', customStatuses, triggerStatusChange)
+  return statusOptions('aiLead', customStatuses, triggerStatusChange)
 })
 
 usePageMeta(() => {
@@ -367,16 +376,6 @@ const tabs = computed(() => {
       icon: DetailsIcon,
     },
     {
-      name: 'Events',
-      label: __('Events'),
-      icon: EventIcon,
-    },
-    {
-      name: 'Calls',
-      label: __('Calls'),
-      icon: PhoneIcon,
-    },
-    {
       name: 'Tasks',
       label: __('Tasks'),
       icon: TaskIcon,
@@ -390,23 +389,17 @@ const tabs = computed(() => {
       name: 'Attachments',
       label: __('Attachments'),
       icon: AttachmentIcon,
-    },
-    {
-      name: 'WhatsApp',
-      label: __('WhatsApp'),
-      icon: WhatsAppIcon,
-      condition: () => whatsappEnabled.value,
-    },
+    }
   ]
   return tabOptions.filter((tab) => (tab.condition ? tab.condition() : true))
 })
 
-const { tabIndex, changeTabTo } = useActiveTabManager(tabs, 'lastLeadTab')
+const { tabIndex, changeTabTo } = useActiveTabManager(tabs, 'lastAiLeadTab')
 
 const sections = createResource({
   url: 'crm.fcrm.doctype.crm_fields_layout.crm_fields_layout.get_sidepanel_sections',
-  cache: ['sidePanelSections', 'CRM Lead'],
-  params: { doctype: 'CRM Lead' },
+  cache: ['sidePanelSections', 'AI Leads'],
+  params: { doctype: 'AI Leads' },
   auto: true,
 })
 
@@ -445,9 +438,9 @@ function deleteLead() {
 function openEmailBox() {
   let currentTab = tabs.value[tabIndex.value]
   if (!['Emails', 'Comments', 'Activities'].includes(currentTab.name)) {
-    activities.value.changeTabTo('emails')
+    aiactivities.value.changeTabTo('emails')
   }
-  nextTick(() => (activities.value.emailBox.show = true))
+  nextTick(() => (aiactivities.value.emailBox.show = true))
 }
 
 const showLostReasonModal = ref(false)

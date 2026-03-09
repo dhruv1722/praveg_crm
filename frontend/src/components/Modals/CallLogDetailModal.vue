@@ -9,77 +9,46 @@
             </h3>
           </div>
           <div class="flex items-center gap-1">
-            <Dropdown
-              :options="[
-                {
-                  group: __('Options'),
-                  hideLabel: true,
-                  items: [
-                    {
-                      label: note?.name ? __('Edit note') : __('Add note'),
-                      icon: NoteIcon,
-                      onClick: addEditNote,
-                    },
-                    {
-                      label: task?.name ? __('Edit task') : __('Add task'),
-                      icon: TaskIcon,
-                      onClick: addEditTask,
-                    },
-                  ],
-                },
-              ]"
-            >
+            <Dropdown :options="[
+              {
+                group: __('Options'),
+                hideLabel: true,
+                items: [
+                  {
+                    label: note?.name ? __('Edit note') : __('Add note'),
+                    icon: NoteIcon,
+                    onClick: addEditNote,
+                  },
+                  {
+                    label: task?.name ? __('Edit task') : __('Add task'),
+                    icon: TaskIcon,
+                    onClick: addEditTask,
+                  },
+                ],
+              },
+            ]">
               <template #default>
                 <Button variant="ghost" icon="more-horizontal" />
               </template>
             </Dropdown>
-            <Button
-              v-if="!isMobileView"
-              variant="ghost"
-              :tooltip="__('Edit call log')"
-              :icon="EditIcon"
-              class="w-7"
-              @click="openCallLogModal"
-            />
-            <Button
-              icon="x"
-              variant="ghost"
-              class="w-7"
-              @click="show = false"
-            />
+            <Button v-if="!isMobileView" variant="ghost" :tooltip="__('Edit call log')" :icon="EditIcon" class="w-7"
+              @click="openCallLogModal" />
+            <Button icon="x" variant="ghost" class="w-7" @click="show = false" />
           </div>
         </div>
         <div class="flex flex-col gap-3.5">
-          <div
-            v-for="field in detailFields"
-            :key="field.name"
-            class="flex gap-2 text-base text-ink-gray-8"
-          >
+          <div v-for="field in detailFields" :key="field.name" class="flex gap-2 text-base text-ink-gray-8">
             <div class="grid size-7 place-content-center">
               <component :is="field.icon" />
             </div>
             <div class="flex min-h-7 w-full items-center gap-2">
-              <div
-                v-if="field.name == 'receiver'"
-                class="flex items-center gap-1"
-              >
-                <Avatar
-                  :image="field.value.caller.image"
-                  :label="field.value.caller.label"
-                  size="sm"
-                />
+              <div v-if="field.name == 'receiver'" class="flex items-center gap-1">
+                <Avatar :image="field.value.caller.image" :label="field.value.caller.label" size="sm" />
                 <div class="ml-1 flex flex-col gap-1">
                   {{ field.value.caller.label }}
                 </div>
-                <FeatherIcon
-                  name="arrow-right"
-                  class="mx-1 h-4 w-4 text-ink-gray-5"
-                />
-                <Avatar
-                  :image="field.value.receiver.image"
-                  :label="field.value.receiver.label"
-                  size="sm"
-                />
+                <FeatherIcon name="arrow-right" class="mx-1 h-4 w-4 text-ink-gray-5" />
+                <Avatar :image="field.value.receiver.image" :label="field.value.receiver.label" size="sm" />
                 <div class="ml-1 flex flex-col gap-1">
                   {{ field.value.receiver.label }}
                 </div>
@@ -88,69 +57,38 @@
                 {{ field.value }}
               </Tooltip>
               <div class="w-full" v-else-if="field.name == 'recording_url'">
-                <audio
-                  class="audio-control w-full"
-                  controls
-                  :src="field.value"
-                ></audio>
+                <audio class="audio-control w-full" controls :src="field.value"></audio>
               </div>
-              <div
-                class="w-full cursor-pointer rounded border px-2 pt-1.5 text-base text-ink-gray-7"
-                v-else-if="field.name == 'note'"
-                @click="() => (showNoteModal = true)"
-              >
+              <div class="w-full cursor-pointer rounded border px-2 pt-1.5 text-base text-ink-gray-7"
+                v-else-if="field.name == 'note'" @click="() => (showNoteModal = true)">
                 <FadedScrollableDiv class="max-h-24 min-h-16 overflow-y-auto">
-                  <div
-                    v-if="field.value?.title"
-                    :class="[field.value?.content ? 'mb-1 font-bold' : '']"
-                    v-html="field.value?.title"
-                  />
-                  <div
-                    v-if="field.value?.content"
-                    v-html="field.value?.content"
-                  />
+                  <div v-if="field.value?.title" :class="[field.value?.content ? 'mb-1 font-bold' : '']"
+                    v-html="field.value?.title" />
+                  <div v-if="field.value?.content" v-html="field.value?.content" />
                 </FadedScrollableDiv>
               </div>
-              <div
-                class="w-full cursor-pointer rounded border px-2 pt-1.5 text-base text-ink-gray-7"
-                v-else-if="field.name == 'task'"
-                @click="() => (showTaskModal = true)"
-              >
+              <div class="w-full cursor-pointer rounded border px-2 pt-1.5 text-base text-ink-gray-7"
+                v-else-if="field.name == 'task'" @click="() => (showTaskModal = true)">
                 <FadedScrollableDiv class="max-h-24 min-h-16 overflow-y-auto">
-                  <div
-                    v-if="field.value?.title"
-                    :class="[field.value?.description ? 'mb-1 font-bold' : '']"
-                    v-html="field.value?.title"
-                  />
-                  <div
-                    v-if="field.value?.description"
-                    v-html="field.value?.description"
-                  />
+                  <div v-if="field.value?.title" :class="[field.value?.description ? 'mb-1 font-bold' : '']"
+                    v-html="field.value?.title" />
+                  <div v-if="field.value?.description" v-html="field.value?.description" />
                 </FadedScrollableDiv>
               </div>
               <div v-else :class="field.color ? `text-${field.color}-600` : ''">
                 {{ field.value }}
               </div>
               <div v-if="field.link">
-                <ArrowUpRightIcon
-                  class="h-4 w-4 shrink-0 cursor-pointer text-ink-gray-5 hover:text-ink-gray-8"
-                  @click="() => field.link()"
-                />
+                <ArrowUpRightIcon class="h-4 w-4 shrink-0 cursor-pointer text-ink-gray-5 hover:text-ink-gray-8"
+                  @click="() => field.link()" />
               </div>
             </div>
           </div>
         </div>
       </div>
-      <div
-        v-if="!callLog?.data?._lead && !callLog?.data?._deal"
-        class="px-4 pb-7 pt-4 sm:px-6"
-      >
-        <Button
-          class="w-full"
-          variant="solid"
-          :label="__('Create lead')"
-          @click="createLead"
-        />
+      <div v-if="!callLog?.data?._lead && !callLog?.data?._ai_lead && !callLog?.data?._deal"
+        class="px-4 pb-7 pt-4 sm:px-6">
+        <Button class="w-full" variant="solid" :label="__('Create lead')" @click="createLead" />
       </div>
     </template>
   </Dialog>
@@ -226,19 +164,24 @@ const detailFields = computed(() => {
       icon: ContactsIcon,
       name: 'receiver',
       value: {
-        receiver: data.receiver,
-        caller: data.caller,
+        receiver: data._receiver,
+        caller: data._caller,
       },
     },
     {
-      icon: data._lead ? LeadsIcon : Dealsicon,
+      icon: data._lead ? LeadsIcon : data._ai_lead ? LeadsIcon : Dealsicon,
       name: 'reference_doc',
-      value: data._lead ? 'Lead' : 'Deal',
+      value: data._lead ? 'Lead' : data._ai_lead ? 'AI Lead' : 'Deal',
       link: () => {
         if (data._lead) {
           router.push({
             name: 'Lead',
             params: { leadId: data._lead },
+          })
+        } else if (data._ai_lead) {
+          router.push({
+            name: 'AI Lead',
+            params: { aiLeadId: data._ai_lead },
           })
         } else {
           router.push({
@@ -247,7 +190,7 @@ const detailFields = computed(() => {
           })
         }
       },
-      condition: () => data._lead || data._deal,
+      condition: () => data._lead || data._ai_lead || data._deal,
     },
     {
       icon: CalendarIcon,

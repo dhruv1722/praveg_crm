@@ -37,6 +37,7 @@ def get_boot():
 	return frappe._dict(
 		{
 			"frappe_version": frappe.__version__,
+			"brand_name": frappe.db.get_single_value("FCRM Settings", "brand_name") or _("Frappe CRM"),
 			"default_route": get_default_route(),
 			"site_name": frappe.local.site,
 			"read_only_mode": frappe.flags.read_only,

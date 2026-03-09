@@ -286,7 +286,7 @@ async function makeSmartFlowCall() {
   isCallInProgress.value = true
 
   try {
-    const result = await call('shayona_crm.api.smartflow.make_call', {
+    const result = await call('praveg.api.smartflow.make_call', {
       to_number: doc.value.mobile_no,
       reference_doctype: 'CRM Deal',
       reference_docname: props.dealId

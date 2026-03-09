@@ -8,23 +8,24 @@ export const useSmartflowCallStore = defineStore('smartflowCall', {
     callId: null,
     status: null,
     to: null,
+    from_number: null,
     leadName: null,
     startTime: null,
     timer: 0,
 
-    // Reset ke baad bhi yaad rahe — taaki "Disconnected" popup mein name dikhे
     _lastCallId: null,
     _lastLeadName: null,
     _lastTo: null,
   }),
 
   actions: {
-    open(callId, to, leadName = null) {
+    open(callId, to, leadName = null, from_number = null) {
       this.stopTimer()
       this.isOpen = true
       this.callId = callId
       this.to = to
-      this.leadName = leadName
+      this.from_number = from_number
+      this.leadName = leadName || this._lastLeadName
       this.status = 'Initiated'
       this.timer = 0
 
@@ -32,35 +33,30 @@ export const useSmartflowCallStore = defineStore('smartflowCall', {
       this._lastCallId = callId
       if (leadName) this._lastLeadName = leadName
       if (to) this._lastTo = to
-
-      setTimeout(() => {
-        this.reset()
-      }, 10000)
     },
 
-    // Popup band hua but call abhi chal rahi hai
-    // Last values preserve karo
     softReset() {
       this.stopTimer()
       this.isOpen = false
       this.callId = null
       this.status = null
       this.to = null
+      this.from_number = null
       this.leadName = null
       this.timer = 0
       // _last* values mat clear karo — webhook event ke liye chahiye
     },
 
     updateStatus(status) {
-	return
       this.status = status
 
-      // if (status === "In Progress") {
-      // 	this.startTimer();
-      // }
+      if (status === 'In Progress') {
+        this.startTimer()
+      }
 
       if (
         status === 'Completed' ||
+        status === 'Disconnected' ||
         status === 'Failed' ||
         status === 'No Answer' ||
         status === 'Busy' ||
@@ -69,7 +65,7 @@ export const useSmartflowCallStore = defineStore('smartflowCall', {
         this.stopTimer()
         setTimeout(() => {
           this.reset()
-        }, 8000)
+        }, 1500) // 1.5 sec so user sees Disconnected
       }
     },
 
@@ -95,6 +91,7 @@ export const useSmartflowCallStore = defineStore('smartflowCall', {
       this.callId = null
       this.status = null
       this.to = null
+      this.from_number = null
       this.leadName = null
       this.timer = 0
       this._lastCallId = null

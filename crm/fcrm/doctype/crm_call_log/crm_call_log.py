@@ -19,6 +19,7 @@ class CRMCallLog(Document):
 		from frappe.core.doctype.dynamic_link.dynamic_link import DynamicLink
 		from frappe.types import DF
 
+		ai_status: DF.Literal["", "Sent", "Received", "Failed"]
 		caller: DF.Link | None
 		duration: DF.Duration | None
 		end_time: DF.Datetime | None
@@ -26,23 +27,17 @@ class CRMCallLog(Document):
 		links: DF.Table[DynamicLink]
 		medium: DF.Data | None
 		note: DF.Link | None
+		received_json_log: DF.LongText | None
+		received_time: DF.Datetime | None
 		receiver: DF.Link | None
-		recording_url: DF.Data | None
+		recording_url: DF.Text | None
 		reference_docname: DF.DynamicLink | None
 		reference_doctype: DF.Link | None
+		sent_json_log: DF.LongText | None
+		sent_time: DF.Datetime | None
 		start_time: DF.Datetime | None
-		status: DF.Literal[
-			"Initiated",
-			"Ringing",
-			"In Progress",
-			"Completed",
-			"Failed",
-			"Busy",
-			"No Answer",
-			"Queued",
-			"Canceled",
-		]
-		telephony_medium: DF.Literal["", "Manual", "Twilio", "Exotel"]
+		status: DF.Literal["Initiated", "Ringing", "In Progress", "Completed", "Failed", "Busy", "No Answer", "Queued", "Canceled"]
+		telephony_medium: DF.Literal["", "Manual", "Twilio", "Exotel", "Smartflo"]
 		to: DF.Data
 		type: DF.Literal["Incoming", "Outgoing"]
 	# end: auto-generated types
@@ -133,47 +128,120 @@ class CRMCallLog(Document):
 		self.append("links", {"link_doctype": reference_doctype, "link_name": reference_name})
 
 
+# def parse_call_log(call):
+# 	call["show_recording"] = False
+# 	call["_duration"] = seconds_to_duration(call.get("duration"))
+# 	if call.get("type") == "Incoming":
+# 		call["activity_type"] = "incoming_call"
+# 		contact = get_contact_by_phone_number(call.get("from"))
+# 		receiver = (
+# 			frappe.db.get_values("User", call.get("receiver"), ["full_name", "user_image"])[0]
+# 			if call.get("receiver")
+# 			else [None, None]
+# 		)
+# 		call["_caller"] = {
+# 			"label": contact.get("full_name", "Unknown"),
+# 			"image": contact.get("image"),
+# 		}
+# 		call["_receiver"] = {
+# 			"label": receiver[0],
+# 			"image": receiver[1],
+# 		}
+# 	elif call.get("type") == "Outgoing":
+# 		call["activity_type"] = "outgoing_call"
+# 		contact = get_contact_by_phone_number(call.get("to"))
+# 		caller = (
+# 			frappe.db.get_values("User", call.get("caller"), ["full_name", "user_image"])[0]
+# 			if call.get("caller")
+# 			else [None, None]
+# 		)
+# 		call["_caller"] = {
+# 			"label": caller[0],
+# 			"image": caller[1],
+# 		}
+# 		call["_receiver"] = {
+# 			"label": contact.get("full_name", "Unknown"),
+# 			"image": contact.get("image"),
+# 		}
+
+# 	if call.get("reference_doctype") and call.get("reference_docname"):
+# 		call["_display_name"] = get_reference_display_name(
+# 			call.get("reference_doctype"),
+# 			call.get("reference_docname")
+# 		)
+
+
+		
+# 	return call
+
+
 def parse_call_log(call):
-	call["show_recording"] = False
-	call["_duration"] = seconds_to_duration(call.get("duration"))
-	if call.get("type") == "Incoming":
-		call["activity_type"] = "incoming_call"
-		contact = get_contact_by_phone_number(call.get("from"))
-		receiver = (
-			frappe.db.get_values("User", call.get("receiver"), ["full_name", "user_image"])[0]
-			if call.get("receiver")
-			else [None, None]
-		)
-		call["_caller"] = {
-			"label": contact.get("full_name", "Unknown"),
-			"image": contact.get("image"),
-		}
-		call["_receiver"] = {
-			"label": receiver[0],
-			"image": receiver[1],
-		}
-	elif call.get("type") == "Outgoing":
-		call["activity_type"] = "outgoing_call"
-		contact = get_contact_by_phone_number(call.get("to"))
-		caller = (
-			frappe.db.get_values("User", call.get("caller"), ["full_name", "user_image"])[0]
-			if call.get("caller")
-			else [None, None]
-		)
-		call["_caller"] = {
-			"label": caller[0],
-			"image": caller[1],
-		}
-		call["_receiver"] = {
-			"label": contact.get("full_name", "Unknown"),
-			"image": contact.get("image"),
-		}
 
-	return call
+    call["show_recording"] = False
+    call["_duration"] = seconds_to_duration(call.get("duration"))
 
+    if call.get("type") == "Incoming":
+        call["activity_type"] = "incoming_call"
+
+        contact = get_contact_by_phone_number(call.get("from"))
+
+        receiver = (
+            frappe.db.get_values("User", call.get("receiver"), ["full_name", "user_image"])[0]
+            if call.get("receiver")
+            else [None, None]
+        )
+
+        call["_caller"] = {
+            "label": contact.get("full_name", "Unknown"),
+            "image": contact.get("image"),
+        }
+
+        call["_receiver"] = {
+            "label": receiver[0],
+            "image": receiver[1],
+        }
+
+    elif call.get("type") == "Outgoing":
+
+        call["activity_type"] = "outgoing_call"
+
+        contact = get_contact_by_phone_number(call.get("to"))
+
+        caller = (
+            frappe.db.get_values("User", call.get("caller"), ["full_name", "user_image"])[0]
+            if call.get("caller")
+            else [None, None]
+        )
+
+        call["_caller"] = {
+            "label": caller[0],
+            "image": caller[1],
+        }
+
+        call["_receiver"] = {
+            "label": contact.get("full_name", "Unknown"),
+            "image": contact.get("image"),
+        }
+
+    if call.get("reference_doctype") and call.get("reference_docname"):
+
+        display_name = get_reference_display_name(
+            call.get("reference_doctype"),
+            call.get("reference_docname")
+        )
+
+        call["_display_name"] = display_name
+
+        if call.get("type") == "Outgoing":
+            call["_receiver"]["label"] = display_name
+
+        if call.get("type") == "Incoming":
+            call["_caller"]["label"] = display_name
+
+    return call
 
 @frappe.whitelist()
-def get_call_log(name: str):
+def get_call_log(name):
 	call = frappe.get_cached_doc(
 		"CRM Call Log",
 		name,
@@ -203,9 +271,21 @@ def get_call_log(name: str):
 		note = frappe.get_cached_doc("FCRM Note", call.get("note")).as_dict()
 		notes.append(note)
 
+	# if call.get("reference_doctype") and call.get("reference_docname"):
+	# 	if call.get("reference_doctype") == "CRM Lead":
+	# 		call["_lead"] = call.get("reference_docname")
+	# 	else if call.get("reference_doctype") == "AI Leads":
+	# 		call["_ai_lead"] = call.get("reference_docname")
+	# 	elif call.get("reference_doctype") == "CRM Deal":
+	# 		call["_deal"] = call.get("reference_docname")
+		
 	if call.get("reference_doctype") and call.get("reference_docname"):
 		if call.get("reference_doctype") == "CRM Lead":
 			call["_lead"] = call.get("reference_docname")
+
+		elif call.get("reference_doctype") == "AI Leads":
+			call["_ai_lead"] = call.get("reference_docname")
+
 		elif call.get("reference_doctype") == "CRM Deal":
 			call["_deal"] = call.get("reference_docname")
 
@@ -219,6 +299,10 @@ def get_call_log(name: str):
 				notes.append(note)
 			elif link.get("link_doctype") == "CRM Lead":
 				call["_lead"] = link.get("link_name")
+
+			elif link.get("link_doctype") == "AI Leads":
+				call["_ai_lead"] = link.get("link_name")
+
 			elif link.get("link_doctype") == "CRM Deal":
 				call["_deal"] = link.get("link_name")
 
@@ -228,7 +312,7 @@ def get_call_log(name: str):
 
 
 @frappe.whitelist()
-def create_lead_from_call_log(call_log: str | dict, lead_details: str | dict | None = None):
+def create_lead_from_call_log(call_log, lead_details=None):
 	call_log_data = frappe.parse_json(call_log or {})
 
 	if isinstance(call_log_data, str):
@@ -278,3 +362,33 @@ def create_lead_from_call_log(call_log: str | dict, lead_details: str | dict | N
 	call_doc.save()
 
 	return lead.name
+
+
+@frappe.whitelist()
+def get_reference_display_name(doctype, name):
+
+    if doctype == "CRM Lead":
+        return frappe.db.get_value("CRM Lead", name, "lead_name")
+
+    if doctype == "AI Leads":
+        data = frappe.db.get_value(
+            "AI Leads",
+            name,
+            ["first_name", "last_name"],
+            as_dict=True
+        )
+        if data:
+            return f"{data.first_name or ''} {data.last_name or ''}".strip()
+
+    if doctype == "CRM Deal":
+        data = frappe.db.get_value(
+            "CRM Deal",
+            name,
+            ["first_name", "last_name"],
+            as_dict=True
+        )
+        if data:
+            return f"{data.first_name or ''} {data.last_name or ''}".strip()
+
+    return name
+

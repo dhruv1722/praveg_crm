@@ -12,17 +12,65 @@ export function getCallLogDetail(row, log, columns = []) {
       label: log._duration,
       icon: 'clock',
     }
-  } else if (row === 'caller') {
+  }
+
+  // else if (row === 'caller') {
+  //   return {
+  //     label: log._caller?.label,
+  //     image: log._caller?.image,
+  //   }
+  // }
+
+  // else if (row === 'receiver') {
+  //   return {
+  //     label: log._receiver?.label,
+  //     image: log._receiver?.image,
+  //   }
+  // }
+
+
+
+  else if (row === 'caller') {
+    // outgoing → agent caller
+    if (log.type === 'Outgoing') {
+      return {
+        label: log._caller?.label || log.caller,
+        image: log._caller?.image,
+      }
+    }
+
+    // incoming → customer caller
+    if (log.reference_docname) {
+      return {
+        label: log._display_name || log.reference_docname,
+      }
+    }
+
     return {
-      label: log._caller?.label,
-      image: log._caller?.image,
+      label: log.from,
     }
   } else if (row === 'receiver') {
-    return {
-      label: log._receiver?.label,
-      image: log._receiver?.image,
+    // incoming → agent receiver
+    if (log.type === 'Incoming') {
+      return {
+        label: log._receiver?.label || log.receiver,
+        image: log._receiver?.image,
+      }
     }
-  } else if (row === 'type') {
+
+    // outgoing → customer receiver
+    if (log.reference_docname) {
+      return {
+        label: log._display_name || log.reference_docname,
+      }
+    }
+
+    return {
+      label: log.to,
+    }
+  }
+
+  else if (row === 'type') {
     return {
       label: log.type,
       icon: incoming ? 'phone-incoming' : 'phone-outgoing',
