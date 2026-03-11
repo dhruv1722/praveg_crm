@@ -34,6 +34,15 @@
             :isGridRow="true"
           />
         </div>
+        <!-- template: add below FieldLayout block -->
+        <div 
+          v-if="showApplyButton" 
+          class="mt-6 flex justify-end">
+          <Button 
+            :label="__('Apply')" 
+            variant="solid" 
+            @click="applyChanges" />
+        </div>
       </div>
     </template>
   </Dialog>
@@ -44,7 +53,7 @@ import EditIcon from '@/components/Icons/EditIcon.vue'
 import FieldLayout from '@/components/FieldLayout/FieldLayout.vue'
 import { usersStore } from '@/stores/users'
 import { createResource } from 'frappe-ui'
-import { nextTick } from 'vue'
+import { computed, inject, nextTick } from 'vue'
 
 const props = defineProps({
   index: Number,
@@ -69,8 +78,27 @@ const tabs = createResource({
   auto: true,
 })
 
+const saveDataFieldsChanges = inject('saveDataFieldsChanges', null)
+
+const showApplyButton = computed(() => {
+  return (
+    ['CRM Lead', 'CRM Deal'].includes(props.parentDoctype) &&
+    props.doctype === 'CRM Guest Details' &&
+    (props.data?.parentfield || '') === 'custom_guest'
+  )
+})
+
 function openGridRowFieldsModal() {
   showGridRowFieldsModal.value = true
   nextTick(() => (show.value = false))
 }
+
+function applyChanges() {
+  show.value = false
+  if (typeof saveDataFieldsChanges === 'function') {
+    saveDataFieldsChanges()
+  }
+}
 </script>
+
+<!-- Customization added in this file -->

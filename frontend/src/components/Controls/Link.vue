@@ -3,17 +3,9 @@
     <label class="block" :class="labelClasses" v-if="attrs.label">
       {{ __(attrs.label) }}
     </label>
-    <Autocomplete
-      ref="autocomplete"
-      :options="options.data"
-      v-model="value"
-      :size="attrs.size || 'sm'"
-      :variant="attrs.variant"
-      :placeholder="attrs.placeholder"
-      :disabled="attrs.disabled"
-      :placement="attrs.placement"
-      :filterable="false"
-    >
+    <Autocomplete ref="autocomplete" :options="options.data" v-model="value" :size="attrs.size || 'sm'"
+      :variant="attrs.variant" :placeholder="attrs.placeholder" :disabled="attrs.disabled" :placement="attrs.placement"
+      :filterable="false">
       <template #target="{ open, togglePopover }">
         <slot name="target" v-bind="{ open, togglePopover }" />
       </template>
@@ -44,22 +36,12 @@
 
       <template #footer="{ value, close }">
         <div v-if="attrs.onCreate">
-          <Button
-            variant="ghost"
-            class="w-full !justify-start"
-            :label="__('Create new')"
-            iconLeft="plus"
-            @click="() => attrs.onCreate(value, close)"
-          />
+          <Button variant="ghost" class="w-full !justify-start" :label="__('Create new')" iconLeft="plus"
+            @click="() => attrs.onCreate(value, close)" />
         </div>
         <div>
-          <Button
-            variant="ghost"
-            class="w-full !justify-start"
-            :label="__('Clear')"
-            iconLeft="x"
-            @click="() => clearValue(close)"
-          />
+          <Button variant="ghost" class="w-full !justify-start" :label="__('Clear')" iconLeft="x"
+            @click="() => clearValue(close)" />
         </div>
       </template>
     </Autocomplete>
@@ -73,31 +55,7 @@ import { createResource } from 'frappe-ui'
 import { inject, useAttrs, computed, ref } from 'vue'
 
 const parentDoc = inject('parentDoc', null)
-
-const resolvedHotelProperty = computed(() => {
-  return parentDoc?.value?.custom_hotel_property || null
-})
-
-const activeFilters = computed(() => {
-  if (
-    props.doctype === 'CRM Property Room Category' &&
-    resolvedHotelProperty.value
-  ) {
-    return {
-      hotel_property: resolvedHotelProperty.value
-    }
-  }
-
-  if (
-    props.doctype === 'CRM Property Meal Plan' &&
-    resolvedHotelProperty.value
-  ) {
-    return {
-      hotel_property: resolvedHotelProperty.value
-    }
-  }
-  return props.filters
-})
+const resolvedRow = inject('rows', null)
 
 const props = defineProps({
   doctype: {
@@ -116,6 +74,71 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  row:
+  {
+    type: Object,
+    default: null
+  }, // add
+})
+
+const resolvedHotelProperty = computed(() => {
+  return parentDoc?.value?.custom_hotel_property || null
+})
+
+const searchEndpoint = computed(() => {
+  // Room field condition
+  if (
+    props.doctype === 'CRM Room Category' &&
+    resolvedHotelProperty.value
+  ) {
+    return 'praveg.api.fcrm.get_rooms_for_property'
+  }
+
+  return 'frappe.desk.search.search_link'
+})
+
+const activeFilters = computed(() => {
+  if (
+    props.doctype === 'CRM Room Category' &&
+    resolvedHotelProperty.value
+  ) {
+    return {
+      hotel_property: resolvedHotelProperty.value,
+      status: 'Active',
+    }
+  }
+
+  if (
+    props.doctype === 'CRM Property Room Category' &&
+    resolvedHotelProperty.value
+  ) {
+    return {
+      hotel_property: resolvedHotelProperty.value,
+      room_category: props.row?.room_category || null,
+      status: 'Active',
+    }
+  }
+
+  if (
+    props.doctype === 'CRM Property Meal Plan' &&
+    resolvedHotelProperty.value
+  ) {
+    return {
+      hotel_property: resolvedHotelProperty.value,
+      status: 'Active',
+    }
+  }
+
+  if (
+    props.doctype === 'Property Package' &&
+    resolvedHotelProperty.value
+  ) {
+    return {
+      hotel_property: resolvedHotelProperty.value,
+      status: 'Active',
+    }
+  }
+  return props.filters
 })
 
 const emit = defineEmits(['update:modelValue', 'change'])
@@ -163,7 +186,7 @@ watchDebounced(
 )
 
 const options = createResource({
-  url: 'frappe.desk.search.search_link',
+  url: searchEndpoint.value,
   cache: [props.doctype, text.value, props.hideMe, props.filters],
   method: 'POST',
   params: {
@@ -189,14 +212,14 @@ const options = createResource({
   },
 })
 
-function reload(val, force=false) {
+function reload(val, force = false) {
   if (!props.doctype) return
   if (
     !force &&
     options.data?.length &&
     val === options.params?.txt &&
     props.doctype === options.params?.doctype
-  ) 
+  )
     return
 
   options.update({
@@ -224,3 +247,5 @@ const labelClasses = computed(() => {
   ]
 })
 </script>
+
+<!-- Customization added in this file -->

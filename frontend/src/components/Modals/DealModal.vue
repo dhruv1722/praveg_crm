@@ -9,63 +9,30 @@
             </h3>
           </div>
           <div class="flex items-center gap-1">
-            <Button
-              v-if="isManager() && !isMobileView"
-              variant="ghost"
-              class="w-7"
-              :tooltip="__('Edit fields layout')"
-              :icon="EditIcon"
-              @click="openQuickEntryModal"
-            />
-            <Button
-              variant="ghost"
-              class="w-7"
-              icon="x"
-              @click="show = false"
-            />
+            <Button v-if="isManager() && !isMobileView" variant="ghost" class="w-7" :tooltip="__('Edit fields layout')"
+              :icon="EditIcon" @click="openQuickEntryModal" />
+            <Button variant="ghost" class="w-7" icon="x" @click="show = false" />
           </div>
         </div>
         <div>
-          <div
-            v-if="hasOrganizationSections || hasContactSections"
-            class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3"
-          >
-            <div
-              v-if="hasOrganizationSections"
-              class="flex items-center gap-3 text-sm text-ink-gray-5"
-            >
+          <div v-if="hasOrganizationSections || hasContactSections" class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div v-if="hasOrganizationSections" class="flex items-center gap-3 text-sm text-ink-gray-5">
               <div>{{ __('Choose existing organization') }}</div>
               <Switch v-model="chooseExistingOrganization" />
             </div>
-            <div
-              v-if="hasContactSections"
-              class="flex items-center gap-3 text-sm text-ink-gray-5"
-            >
+            <div v-if="hasContactSections" class="flex items-center gap-3 text-sm text-ink-gray-5">
               <div>{{ __('Choose existing contact') }}</div>
               <Switch v-model="chooseExistingContact" />
             </div>
           </div>
-          <div
-            v-if="hasOrganizationSections || hasContactSections"
-            class="h-px w-full border-t my-5"
-          />
-          <FieldLayout
-            v-if="tabs.data?.length"
-            :tabs="tabs.data"
-            :data="deal.doc"
-            doctype="CRM Deal"
-          />
+          <div v-if="hasOrganizationSections || hasContactSections" class="h-px w-full border-t my-5" />
+          <FieldLayout v-if="tabs.data?.length" :tabs="tabs.data" :data="deal.doc" doctype="CRM Deal" />
           <ErrorMessage class="mt-4" v-if="error" :message="__(error)" />
         </div>
       </div>
       <div class="px-4 pb-7 pt-4 sm:px-6">
         <div class="flex flex-row-reverse gap-2">
-          <Button
-            variant="solid"
-            :label="__('Create')"
-            :loading="isDealCreating"
-            @click="createDeal"
-          />
+          <Button variant="solid" :label="__('Create')" :loading="isDealCreating" @click="createDeal" />
         </div>
       </div>
     </template>
@@ -84,6 +51,7 @@ import { useTelemetry } from 'frappe-ui/frappe'
 import { Switch, createResource } from 'frappe-ui'
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCRMDealModal } from '@/composables/formScripts/useCRMDealModal'
 
 const props = defineProps({
   defaults: Object,
@@ -105,6 +73,7 @@ const isDealCreating = ref(false)
 const chooseExistingContact = ref(false)
 const chooseExistingOrganization = ref(false)
 const { capture } = useTelemetry()
+const crmDealScript = useCRMDealModal(deal, error)
 
 watch(
   [chooseExistingOrganization, chooseExistingContact],
@@ -188,10 +157,17 @@ async function createDeal() {
 
   createResource({
     url: 'crm.fcrm.doctype.crm_deal.crm_deal.create_deal',
-    params: { doc: deal.doc },
+    params: { args: deal.doc },
     auto: true,
     validate() {
       error.value = null
+
+      const formError = crmDealScript.beforeCreate()
+      if (formError) {
+        error.value = formError
+        return formError
+      }
+
       if (deal.doc.annual_revenue) {
         if (typeof deal.doc.annual_revenue === 'string') {
           deal.doc.annual_revenue = deal.doc.annual_revenue.replace(/,/g, '')
@@ -250,5 +226,9 @@ onMounted(() => {
   if (!deal.doc.status && dealStatuses.value[0].value) {
     deal.doc.status = dealStatuses.value[0].value
   }
+
+  crmDealScript.setupWatchers()
 })
 </script>
+
+<!-- Customization added in this file -->

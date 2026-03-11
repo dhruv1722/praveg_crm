@@ -53,10 +53,6 @@
 
             <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
-
-            <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
-
-
             <Button :tooltip="__('Send an email')" :icon="Email2Icon" @click="
               doc.email ? openEmailBox() : toast.error(__('No email set'))
               " />
@@ -242,6 +238,7 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
 import { useSmartflowCallStore } from "@/stores/smartflow"
+import { useCRMDeal } from '@/composables/formScripts/useCRMDeal'
 
 const { brand } = getSettings()
 const { $dialog, $socket, makeCall } = globalStore()
@@ -271,6 +268,7 @@ const { triggerOnChange, assignees, permissions, document, scripts, error } =
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
+const crmDealScript = useCRMDeal(doc)
 
 const callStore = useSmartflowCallStore()
 
@@ -389,6 +387,7 @@ onMounted(() => {
   $socket.on('crm_customer_created', () => {
     toast.success(__('Customer created successfully'))
   })
+  crmDealScript.setupWatchers()
 })
 
 onBeforeUnmount(() => {
@@ -686,6 +685,14 @@ function setLostReason() {
 }
 
 function beforeStatusChange(data) {
+
+  const error = crmDealScript.beforeSave()
+
+  if (error) {
+    toast.error(error)
+    return
+  }
+
   if (
     data?.hasOwnProperty('status') &&
     getDealStatus(data.status).type == 'Lost'

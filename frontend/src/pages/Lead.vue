@@ -177,6 +177,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
 import { useSmartflowCallStore } from "@/stores/smartflow"
+import { useCRMLead } from '@/composables/formScripts/useCRMLead'
 
 const { brand } = getSettings()
 const { $dialog, $socket } = globalStore()
@@ -207,6 +208,8 @@ const { triggerOnChange, assignees, permissions, document, scripts, error } =
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
+
+const crmLeadScript = useCRMLead(doc)
 
 const callStore = useSmartflowCallStore()
 
@@ -466,6 +469,14 @@ function setLostReason() {
 }
 
 function beforeStatusChange(data) {
+
+  const error = crmLeadScript.beforeSave()
+
+  if (error) {
+    toast.error(error)
+    return   // 🚨 STOP SAVE
+  }
+
   if (
     data?.hasOwnProperty('status') &&
     getLeadStatus(data.status).type == 'Lost'

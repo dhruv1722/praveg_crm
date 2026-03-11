@@ -36,7 +36,7 @@ import LoadingIndicator from '@/components/Icons/LoadingIndicator.vue'
 import { usersStore } from '@/stores/users'
 import { useDocument } from '@/data/document'
 import { isMobileView } from '@/composables/settings'
-import { ref, watch, getCurrentInstance } from 'vue'
+import { ref, watch, getCurrentInstance, provide } from 'vue'
 
 const props = defineProps({
   doctype: {
@@ -134,6 +134,8 @@ function saveChanges() {
     })
   }
 }
+
+provide('saveDataFieldsChanges', saveChanges)
 
 watch(
   () => document.doc,

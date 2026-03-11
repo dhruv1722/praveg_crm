@@ -9,20 +9,9 @@
             </h3>
           </div>
           <div class="flex items-center gap-1">
-            <Button
-              v-if="isManager() && !isMobileView"
-              variant="ghost"
-              class="w-7"
-              :tooltip="__('Edit fields layout')"
-              :icon="EditIcon"
-              @click="openQuickEntryModal"
-            />
-            <Button
-              variant="ghost"
-              class="w-7"
-              @click="show = false"
-              icon="x"
-            />
+            <Button v-if="isManager() && !isMobileView" variant="ghost" class="w-7" :tooltip="__('Edit fields layout')"
+              :icon="EditIcon" @click="openQuickEntryModal" />
+            <Button variant="ghost" class="w-7" @click="show = false" icon="x" />
           </div>
         </div>
         <div>
@@ -32,12 +21,7 @@
       </div>
       <div class="px-4 pb-7 pt-4 sm:px-6">
         <div class="flex flex-row-reverse gap-2">
-          <Button
-            variant="solid"
-            :label="__('Create')"
-            :loading="isLeadCreating"
-            @click="createNewLead"
-          />
+          <Button variant="solid" :label="__('Create')" :loading="isLeadCreating" @click="createNewLead" />
         </div>
       </div>
     </template>
@@ -57,6 +41,8 @@ import { createResource } from 'frappe-ui'
 import { useDocument } from '@/data/document'
 import { computed, onMounted, ref, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCRMLeadModal } from '@/composables/formScripts/useCRMLeadModal'
+
 
 const props = defineProps({
   defaults: Object,
@@ -74,6 +60,7 @@ const isLeadCreating = ref(false)
 
 const { document: lead, triggerOnBeforeCreate } = useDocument('CRM Lead')
 
+const crmLeadScript = useCRMLeadModal(lead, error)
 const { capture } = useTelemetry()
 
 const leadStatuses = computed(() => {
@@ -94,6 +81,10 @@ const tabs = createResource({
       tab.sections.forEach((section) => {
         section.columns.forEach((column) => {
           column.fields.forEach((field) => {
+            if (field.fieldtype === 'Date') {
+              field.date_format = field.date_format || 'DD-MM-YYYY'
+            }
+
             if (field.fieldname == 'status') {
               field.fieldtype = 'Select'
               field.options = leadStatuses.value
@@ -131,6 +122,13 @@ async function createNewLead() {
     {
       validate() {
         error.value = null
+        
+        const formError = crmLeadScript.beforeCreate()
+        if (formError) {
+          error.value = formError
+          return formError
+        }
+
         if (!lead.doc.first_name) {
           error.value = __('First name is mandatory')
           return error.value
@@ -197,5 +195,9 @@ onMounted(() => {
   if (!lead.doc?.status && leadStatuses.value[0]?.value) {
     lead.doc.status = leadStatuses.value[0].value
   }
+
+  crmLeadScript.setupWatchers()
 })
 </script>
+
+<!-- Customization added in this file -->

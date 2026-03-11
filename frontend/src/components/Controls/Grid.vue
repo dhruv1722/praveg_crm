@@ -71,7 +71,7 @@
                   " class="text-sm text-ink-gray-8" :value="row[field.fieldname]" :doctype="field.fieldtype == 'Link'
                         ? field.options
                         : row[field.options]
-                      " :filters="field.filters" @change="(v) => fieldChange(v, field, row)" :onCreate="(value, close) => field.create(v, field, row, close)
+                      " :filters="field.filters" :row="row" @change="(v) => fieldChange(v, field, row)" :onCreate="(value, close) => field.create(v, field, row, close)
                       " />
                   <Link v-else-if="field.fieldtype === 'User'" class="form-control"
                     :value="getUser(row[field.fieldname]).full_name" :doctype="field.options" :filters="field.filters"
@@ -233,6 +233,7 @@ const rows = defineModel()
 const parentDoc = defineModel('parent')
 
 provide('parentDoc', parentDoc)
+provide('rows', rows)
 
 const showRowList = ref(new Array(rows.value?.length || []).fill(false))
 const selectedRows = reactive(new Set())
@@ -482,3 +483,5 @@ const getOptions = (options) => {
   border: 1px solid var(--outline-gray-2);
 }
 </style>
+
+<!-- Customization added in this file -->
