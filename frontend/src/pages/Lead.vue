@@ -173,7 +173,7 @@ import {
   usePageMeta,
   toast,
 } from 'frappe-ui'
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick , onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
 import { useSmartflowCallStore } from "@/stores/smartflow"
@@ -366,7 +366,7 @@ const tabs = computed(() => {
     },
     {
       name: 'Data',
-      label: __('Data'),
+      label: __('Quotation'),
       icon: DetailsIcon,
     },
     {
@@ -494,4 +494,8 @@ function reloadAssignees(data) {
     assignees.reload()
   }
 }
+
+onMounted(() => {
+  crmLeadScript.setupWatchers()
+})
 </script>
