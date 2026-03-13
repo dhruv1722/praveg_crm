@@ -139,6 +139,14 @@
       :placeholder="getPlaceholder(field)"
       :disabled="Boolean(field.read_only)"
     />
+    <TimePicker
+      v-else-if="field.fieldtype === 'Time'"
+      :value="data[field.fieldname]"
+      :format="getFormat('', '', false, true, false)"
+      :placeholder="getPlaceholder(field)"
+      input-class="border-none"
+      @change="(v) => fieldChange(v, field)"
+    />
     <DateTimePicker
       v-else-if="field.fieldtype === 'Datetime'"
       :value="data[field.fieldname]"
@@ -235,12 +243,14 @@ import { flt } from '@/utils/numberFormat.js'
 import { getMeta } from '@/stores/meta'
 import { usersStore } from '@/stores/users'
 import { useDocument } from '@/data/document'
-import { Combobox, Tooltip, DatePicker, DateTimePicker } from 'frappe-ui'
+import { Combobox, Tooltip, DatePicker, DateTimePicker , TimePicker } from 'frappe-ui'
 import { computed, provide, inject } from 'vue'
 
 const props = defineProps({
   field: Object,
 })
+
+
 
 const data = inject('data')
 const doctype = inject('doctype')
@@ -302,6 +312,12 @@ const field = computed(() => {
     }
   }
 
+  const read_only_via_depends_on = evaluateDependsOnValue(
+    field.read_only_depends_on,
+    data.value,
+  )
+
+
   let _field = {
     ...field,
     filters: field.link_filters && JSON.parse(field.link_filters),
@@ -314,6 +330,9 @@ const field = computed(() => {
       field.mandatory_depends_on,
       data.value,
     ),
+     read_only:
+      field.read_only ||
+      (field.read_only_depends_on && read_only_via_depends_on),
   }
 
   _field.visible = isFieldVisible(_field)
@@ -361,7 +380,11 @@ const getOptions = (options) => {
 }
 
 function fieldChange(value, df) {
-  value = typeof value === 'object' && value !== null ? value.value : value
+  value = Array.isArray(value)
+    ? value
+    : typeof value === 'object' && value !== null && 'value' in value
+      ? value.value
+      : value
   if (isGridRow) {
     triggerOnChange(df.fieldname, value, data.value)
   } else {
