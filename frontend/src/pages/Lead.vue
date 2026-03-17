@@ -80,6 +80,8 @@
                 <Button :tooltip="__('Make a call')" :icon="PhoneIcon" :loading="isCallInProgress"
                   @click="makeSmartFlowCall" />
 
+                <Button :tooltip="__('Generate Quotation')" :icon="DocumentIcon" @click="generateQuotation()" />
+
                 <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
                 <Button :tooltip="__('Send an email')" :icon="Email2Icon" @click="
@@ -130,6 +132,7 @@ import EmailIcon from '@/components/Icons/EmailIcon.vue'
 import Email2Icon from '@/components/Icons/Email2Icon.vue'
 import CommentIcon from '@/components/Icons/CommentIcon.vue'
 import DetailsIcon from '@/components/Icons/DetailsIcon.vue'
+import DocumentIcon from '@/components/Icons/DocumentIcon.vue'
 import EventIcon from '@/components/Icons/EventIcon.vue'
 import PhoneIcon from '@/components/Icons/PhoneIcon.vue'
 import TaskIcon from '@/components/Icons/TaskIcon.vue'
@@ -173,7 +176,7 @@ import {
   usePageMeta,
   toast,
 } from 'frappe-ui'
-import { ref, computed, watch, nextTick , onMounted } from 'vue'
+import { ref, computed, watch, nextTick, onMounted , provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
 import { useSmartflowCallStore } from "@/stores/smartflow"
@@ -210,6 +213,10 @@ const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 const doc = computed(() => document.doc || {})
 
 const crmLeadScript = useCRMLead(doc)
+
+// custom code
+provide('fieldButtonHandlers', crmLeadScript.buttonHandlers || {})
+// custom code
 
 const callStore = useSmartflowCallStore()
 
@@ -269,6 +276,9 @@ async function openWhatsApp() {
   window.open(url, '_blank')
 }
 
+function generateQuotation() {
+  window.open(`/api/method/praveg.api.fcrm.generate_lead_pdf?lead=${props.leadId}`, '_blank')
+}
 
 watch(error, (err) => {
   if (err) {

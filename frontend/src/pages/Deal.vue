@@ -233,7 +233,7 @@ import {
   onMounted,
   onBeforeUnmount,
   nextTick,
-  watch,
+  watch, provide
 } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
@@ -268,7 +268,12 @@ const { triggerOnChange, assignees, permissions, document, scripts, error } =
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
+
 const crmDealScript = useCRMDeal(doc)
+
+// custom code
+provide('fieldButtonHandlers', crmDealScript.buttonHandlers || {})
+// custom code
 
 const callStore = useSmartflowCallStore()
 

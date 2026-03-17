@@ -185,11 +185,11 @@ const links = [
     icon: PhoneIcon,
     to: 'Call Logs',
   },
-  {
-    label: 'AI Leads',
-    icon: AiLeadsIcon,
-    to: 'AI Leads',
-  }
+  // {
+  //   label: 'AI Leads',
+  //   icon: AiLeadsIcon,
+  //   to: 'AI Leads',
+  // }
 ]
 
 const allViews = computed(() => {

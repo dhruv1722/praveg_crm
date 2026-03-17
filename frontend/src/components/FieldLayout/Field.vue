@@ -1,6 +1,6 @@
 <template>
   <div v-if="field.visible" class="field">
-    <div v-if="field.fieldtype != 'Check'" class="mb-2 text-sm text-ink-gray-5">
+      <div v-if="!['Check', 'Button'].includes(field.fieldtype)" class="mb-2 text-sm text-ink-gray-5">
       {{ __(field.label) }}
       <span
         v-if="
@@ -11,10 +11,19 @@
         >*</span
       >
     </div>
+
+    <!-- custom code -->
+    <div
+      v-if="field.fieldtype === 'Code' && field.options === 'HTML'"
+      class="ai-html text-ink-gray-2"
+      v-html="data[field.fieldname] || ''"
+    ></div>
+    <!-- custom code -->
+
     <FormControl
-      v-if="
+      v-else-if="
         field.read_only &&
-        !['Int', 'Float', 'Currency', 'Percent', 'Check'].includes(
+        !['Int', 'Float', 'Currency', 'Percent', 'Check' , 'Button'].includes(
           field.fieldtype,
         )
       "
@@ -101,6 +110,16 @@
       :doctype="field.options"
       @change="(v) => fieldChange(v, field)"
     />
+
+        <!-- // custom code -->
+    <Button
+      v-else-if="field.fieldtype === 'Button'"
+      class="w-full"
+      :label="__(field.label)"
+      :disabled="Boolean(field.read_only)"
+      @click="handleButtonClick(field)"
+    />
+    <!-- // custom code -->
 
     <Link
       v-else-if="field.fieldtype === 'User'"
@@ -262,6 +281,10 @@ const { getFormattedPercent, getFormattedFloat, getFormattedCurrency } =
 
 const { users, getUser } = usersStore()
 
+// custom code
+const fieldButtonHandlers = inject('fieldButtonHandlers', null)
+// custom code
+
 let triggerOnChange
 let parentDoc
 
@@ -391,6 +414,16 @@ function fieldChange(value, df) {
     triggerOnChange(df.fieldname, value)
   }
 }
+
+// custom code
+function handleButtonClick(df) {
+  const handler = fieldButtonHandlers?.[df.fieldname]
+  if (typeof handler === 'function') {
+    return handler()
+  }
+  return fieldChange(data.value?.[df.fieldname], df)
+}
+// custom code
 
 function getDataValue(value, field) {
   if (field.fieldtype === 'Duration') {

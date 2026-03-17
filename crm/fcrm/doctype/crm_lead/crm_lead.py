@@ -108,7 +108,8 @@ class CRMLead(Document):
 		if not self.lead_name:
 			# Check for leads being created through data import
 			if not self.organization and not self.email and not self.flags.ignore_mandatory:
-				frappe.throw(_("A Lead requires either a person's name or an organization's name"))
+				# frappe.throw(_("A Lead requires either a person's name or an organization's name"))
+				self.lead_name = None
 			elif self.organization:
 				self.lead_name = self.organization
 			elif self.email:
@@ -390,23 +391,10 @@ class CRMLead(Document):
 				"width": "12rem",
 			},
 			{
-				"label": "Organization",
-				"type": "Link",
-				"key": "organization",
-				"options": "CRM Organization",
-				"width": "10rem",
-			},
-			{
 				"label": "Status",
 				"type": "Select",
 				"key": "status",
 				"width": "8rem",
-			},
-			{
-				"label": "Email",
-				"type": "Data",
-				"key": "email",
-				"width": "12rem",
 			},
 			{
 				"label": "Mobile no",
@@ -415,9 +403,9 @@ class CRMLead(Document):
 				"width": "11rem",
 			},
 			{
-				"label": "Assigned to",
-				"type": "Text",
-				"key": "_assign",
+				"label": "Lead owner",
+				"type": "Link",
+				"key": "lead_owner",
 				"width": "10rem",
 			},
 			{

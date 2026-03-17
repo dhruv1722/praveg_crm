@@ -88,8 +88,7 @@
   {
    "fieldname": "first_name",
    "fieldtype": "Data",
-   "label": "First name",
-   "reqd": 1
+   "label": "First name"
   },
   {
    "fieldname": "middle_name",

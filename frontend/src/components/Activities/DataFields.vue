@@ -16,9 +16,18 @@
     <LoadingIndicator class="h-6 w-6" />
     <span>{{ __('Loading...') }}</span>
   </div>
+
+
   <div v-else class="pb-8">
     <FieldLayout v-if="tabs.data" :tabs="tabs.data" :data="document.doc" :doctype="doctype" />
+    <!-- custom code -->
+    <div class="mt-6 flex justify-end">
+      <Button label="Save" :disabled="!document.isDirty" variant="solid" :loading="document.save.loading"
+        @click="saveChanges" />
+    </div>
+    <!-- custom code -->
   </div>
+
   <DataFieldsModal v-if="showDataFieldsModal" v-model="showDataFieldsModal" :doctype="doctype" @reload="
     () => {
       tabs.reload()

@@ -543,8 +543,75 @@ export function useCRMLead(doc) {
     return validateDates(true) // don't show toast
   }
 
+  // near the bottom, before the return
+  async function generate_quotation_template() {
+    const quotationTemplateResource = createResource({
+      url: "praveg.api.fcrm.generate_whatsapp_quotation_template",
+      params: {
+        doctype: "CRM Lead",
+        docname: doc.value?.name
+      },
+      auto: true,
+      onSuccess(data) {
+        doc.value.custom_quotation_template = data?.template
+        toast.success('Template generated')
+      },
+      onError(err) {
+        toast.error(err?.messages?.[0] || "Failed to generate template")
+      }
+    })
+  }
+
+  async function send_whatsapp_quotation() {
+    if (!doc.value.custom_quotation_template) {
+      toast.error('Please generate a template first')
+      return
+    }
+
+    let url = "https://wa.me/" + doc.value.mobile_no + "?text=" + encodeURIComponent(doc.value.custom_quotation_template);
+
+    window.open(url, "_blank");
+  }
+
+  async function generate_payment_template() {
+    const paymentTemplateResource = createResource({
+      url: "praveg.api.fcrm.generate_whatsapp_payment_link_template",
+      params: {
+        doctype: "CRM Lead",
+        docname: doc.value?.name
+      },
+      auto: true,
+      onSuccess(data) {
+        doc.value.custom_payment_link_template = data?.template
+        toast.success('Template generated')
+      },
+      onError(err) {
+        toast.error(err?.messages?.[0] || "Failed to generate template")
+      }
+    })
+  }
+
+  async function send_whatsapp_payment() {
+    if (!doc.value.custom_payment_link_template) {
+      toast.error('Please generate a template first')
+      return
+    }
+
+    let url = "https://wa.me/" + doc.value.mobile_no + "?text=" + encodeURIComponent(doc.value.custom_payment_link_template);
+
+    window.open(url, "_blank");
+  }
+
+  const buttonHandlers = {
+    custom_generate_template: generate_quotation_template,
+    custom_share_on_whatsapp: send_whatsapp_quotation,
+    custom_generate_template_payment: generate_payment_template,
+    custom_share_on_whatsapp_payment: send_whatsapp_payment
+  }
+
   return {
     setupWatchers,
     beforeSave,
+    buttonHandlers
   }
 }
