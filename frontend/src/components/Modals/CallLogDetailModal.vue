@@ -43,14 +43,16 @@
             </div>
             <div class="flex min-h-7 w-full items-center gap-2">
               <div v-if="field.name == 'receiver'" class="flex items-center gap-1">
-                <Avatar :image="field.value.caller.image" :label="field.value.caller.label" size="sm" />
+                <Avatar :image="field.value.caller.image" :label="resolvePartyAvatarLabel(field.value.caller)"
+                  size="sm" />
                 <div class="ml-1 flex flex-col gap-1">
-                  {{ field.value.caller.label }}
+                  {{ resolvePartyLabel(field.value.caller, callLog?.data?.from) }}
                 </div>
                 <FeatherIcon name="arrow-right" class="mx-1 h-4 w-4 text-ink-gray-5" />
-                <Avatar :image="field.value.receiver.image" :label="field.value.receiver.label" size="sm" />
+                <Avatar :image="field.value.receiver.image" :label="resolvePartyAvatarLabel(field.value.receiver)"
+                  size="sm" />
                 <div class="ml-1 flex flex-col gap-1">
-                  {{ field.value.receiver.label }}
+                  {{ resolvePartyLabel(field.value.receiver, callLog?.data?.to) }}
                 </div>
               </div>
               <Tooltip v-else-if="field.tooltip" :text="field.tooltip">
@@ -138,6 +140,20 @@ const task = ref({
   status: 'Backlog',
   priority: 'Low',
 })
+
+
+const resolvePartyLabel = (party, fallbackNumber) => {
+  const label = party?.label?.trim?.()
+  if (label && label.toLowerCase() !== 'unknown') return label
+  return fallbackNumber || __('Unknown')
+}
+
+const resolvePartyAvatarLabel = (party) => {
+  const label = party?.label?.trim?.()
+  return label && label.toLowerCase() !== 'unknown' ? label : __('Unknown')
+}
+
+
 
 const detailFields = computed(() => {
   if (!callLog.value?.data) return []
