@@ -1,79 +1,34 @@
 <template>
-  <div
-    v-if="isMobileView"
-    class="flex flex-col justify-between gap-2 sm:px-5 px-3 py-4"
-  >
+  <div v-if="isMobileView" class="flex flex-col justify-between gap-2 sm:px-5 px-3 py-4">
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between gap-2 overflow-x-auto">
         <div class="flex gap-2">
-          <Filter
-            v-model="list"
-            :doctype="doctype"
-            :default_filters="filters"
-            @update="updateFilter"
-          />
-          <GroupBy
-            v-if="route.params.viewType === 'group_by'"
-            v-model="list"
-            :doctype="doctype"
-            :hideLabel="isMobileView"
-            @update="updateGroupBy"
-          />
+          <Filter v-model="list" :doctype="doctype" :default_filters="filters" @update="updateFilter" />
+          <GroupBy v-if="route.params.viewType === 'group_by'" v-model="list" :doctype="doctype"
+            :hideLabel="isMobileView" @update="updateGroupBy" />
         </div>
 
         <div class="flex gap-2">
-          <Button
-            :tooltip="__('Refresh')"
-            :icon="RefreshIcon"
-            :loading="isLoading"
-            @click="reload()"
-          />
-          <SortBy
-            v-if="route.params.viewType !== 'kanban'"
-            v-model="list"
-            :doctype="doctype"
-            @update="updateSort"
-            :hideLabel="isMobileView"
-          />
-          <KanbanSettings
-            v-if="route.params.viewType === 'kanban'"
-            v-model="list"
-            :doctype="doctype"
-            @update="updateKanbanSettings"
-          />
-          <ColumnSettings
-            v-else-if="!options.hideColumnsButton"
-            v-model="list"
-            :doctype="doctype"
-            :hideLabel="isMobileView"
-            @update="(isDefault) => updateColumns(isDefault)"
-          />
+          <Button :tooltip="__('Refresh')" :icon="RefreshIcon" :loading="isLoading" @click="reload()" />
+          <SortBy v-if="route.params.viewType !== 'kanban'" v-model="list" :doctype="doctype" @update="updateSort"
+            :hideLabel="isMobileView" />
+          <KanbanSettings v-if="route.params.viewType === 'kanban'" v-model="list" :doctype="doctype"
+            @update="updateKanbanSettings" />
+          <ColumnSettings v-else-if="!options.hideColumnsButton" v-model="list" :doctype="doctype"
+            :hideLabel="isMobileView" @update="(isDefault) => updateColumns(isDefault)" />
         </div>
       </div>
-      <div
-        v-if="viewUpdated && route.query.view && (!view.public || isManager())"
-        class="flex flex-row-reverse items-center gap-2 border-r pr-2"
-      >
+      <div v-if="viewUpdated && route.query.view && (!view.public || isManager())"
+        class="flex flex-row-reverse items-center gap-2 border-r pr-2">
         <Button :label="__('Cancel')" @click="cancelChanges" />
         <Button :label="__('Save changes')" @click="saveView" />
       </div>
     </div>
   </div>
-  <div
-    v-else-if="customizeQuickFilter"
-    class="flex items-center justify-between gap-2 p-5"
-  >
+  <div v-else-if="customizeQuickFilter" class="flex items-center justify-between gap-2 p-5">
     <div class="flex flex-1 items-center overflow-hidden pl-1 gap-2">
-      <FadedScrollableDiv
-        class="flex overflow-x-auto -ml-1"
-        orientation="horizontal"
-      >
-        <Draggable
-          class="flex w-full gap-2 items-center"
-          :list="newQuickFilters"
-          group="filters"
-          item-key="fieldname"
-        >
+      <FadedScrollableDiv class="flex overflow-x-auto -ml-1" orientation="horizontal">
+        <Draggable class="flex w-full gap-2 items-center" :list="newQuickFilters" group="filters" item-key="fieldname">
           <template #item="{ element: filter }">
             <div class="group whitespace-nowrap cursor-grab">
               <Button class="cursor-grab">
@@ -83,11 +38,8 @@
                   </Tooltip>
                 </template>
                 <template #suffix>
-                  <FeatherIcon
-                    class="h-3.5 cursor-pointer group-hover:flex hidden"
-                    name="x"
-                    @click.stop="removeQuickFilter(filter)"
-                  />
+                  <FeatherIcon class="h-3.5 cursor-pointer group-hover:flex hidden" name="x"
+                    @click.stop="removeQuickFilter(filter)" />
                 </template>
               </Button>
             </div>
@@ -95,19 +47,10 @@
         </Draggable>
       </FadedScrollableDiv>
       <div>
-        <Autocomplete
-          value=""
-          :options="quickFilterOptions"
-          @change="(e) => addQuickFilter(e)"
-        >
+        <Autocomplete value="" :options="quickFilterOptions" @change="(e) => addQuickFilter(e)">
           <template #target="{ togglePopover }">
-            <Button
-              class="whitespace-nowrap mr-2"
-              variant="ghost"
-              :label="__('Add filter')"
-              iconLeft="plus"
-              @click="togglePopover()"
-            />
+            <Button class="whitespace-nowrap mr-2" variant="ghost" :label="__('Add filter')" iconLeft="plus"
+              @click="togglePopover()" />
           </template>
           <template #item-label="{ option }">
             <Tooltip :text="option.value" :hover-delay="1">
@@ -121,114 +64,67 @@
     </div>
     <div class="-ml-2 h-[70%] border-l" />
     <div class="flex gap-1">
-      <Button
-        :label="__('Save')"
-        :loading="updateQuickFilters.loading"
-        @click="saveQuickFilters"
-      />
+      <Button :label="__('Save')" :loading="updateQuickFilters.loading" @click="saveQuickFilters" />
       <Button icon="x" @click="customizeQuickFilter = false" />
     </div>
   </div>
   <div v-else class="flex items-center justify-between gap-2 px-5 py-4">
-    <FadedScrollableDiv
-      class="flex flex-1 items-center overflow-x-auto -ml-1 h-9"
-      orientation="horizontal"
-    >
-      <div
-        v-for="filter in quickFilterList"
-        :key="filter.fieldname"
-        class="m-1 min-w-36"
-      >
-        <QuickFilterField
-          :filter="filter"
-          @applyQuickFilter="(f, v) => applyQuickFilter(f, v)"
-        />
+    <FadedScrollableDiv class="flex flex-1 items-center overflow-x-auto -ml-1 h-9" orientation="horizontal">
+      <div v-for="filter in quickFilterList" :key="filter.fieldname" class="m-1 min-w-36">
+        <QuickFilterField :filter="filter" @applyQuickFilter="(f, v) => applyQuickFilter(f, v)" />
       </div>
     </FadedScrollableDiv>
     <div class="-ml-2 h-[70%] border-l" />
     <div class="flex items-center gap-2">
-      <div
-        v-if="viewUpdated && route.query.view && (!view.public || isManager())"
-        class="flex items-center gap-2 border-r pr-2"
-      >
+      <div v-if="viewUpdated && route.query.view && (!view.public || isManager())"
+        class="flex items-center gap-2 border-r pr-2">
         <Button :label="__('Cancel')" @click="cancelChanges" />
         <Button :label="__('Save changes')" @click="saveView" />
       </div>
       <div class="flex items-center gap-2">
-        <Button
-          :tooltip="__('Refresh')"
-          :icon="RefreshIcon"
-          :loading="isLoading"
-          @click="reload()"
-        />
-        <GroupBy
-          v-if="route.params.viewType === 'group_by'"
-          v-model="list"
-          :doctype="doctype"
-          @update="updateGroupBy"
-        />
-        <Filter
-          v-model="list"
-          :doctype="doctype"
-          :default_filters="filters"
-          @update="updateFilter"
-        />
-        <SortBy
-          v-if="route.params.viewType !== 'kanban'"
-          v-model="list"
-          :doctype="doctype"
-          @update="updateSort"
-        />
-        <KanbanSettings
-          v-if="route.params.viewType === 'kanban'"
-          v-model="list"
-          :doctype="doctype"
-          @update="updateKanbanSettings"
-        />
-        <ColumnSettings
-          v-else-if="!options.hideColumnsButton"
-          v-model="list"
-          :doctype="doctype"
-          @update="(isDefault) => updateColumns(isDefault)"
-        />
-        <Dropdown
-          v-if="route.params.viewType !== 'kanban' || isManager()"
-          placement="right"
-          :options="[
-            {
-              group: __('Options'),
-              hideLabel: true,
-              items: [
-                {
-                  label: __('Import'),
-                  icon: () => h(ImportIcon, { class: 'h-4 w-4' }),
-                  onClick: () =>
-                    router.push({
-                      name: 'NewDataImport',
-                      params: { doctype: doctype },
-                    }),
-                  condition: () =>
-                    !options.hideColumnsButton &&
-                    route.params.viewType !== 'kanban',
-                },
-                {
-                  label: __('Export'),
-                  icon: () => h(ExportIcon, { class: 'h-4 w-4' }),
-                  onClick: () => (showExportDialog = true),
-                  condition: () =>
-                    !options.hideColumnsButton &&
-                    route.params.viewType !== 'kanban',
-                },
-                {
-                  label: __('Customize quick filters'),
-                  icon: () => h(QuickFilterIcon, { class: 'h-4 w-4' }),
-                  onClick: () => showCustomizeQuickFilter(),
-                  condition: () => isManager(),
-                },
-              ],
-            },
-          ]"
-        >
+        <Button :tooltip="__('Refresh')" :icon="RefreshIcon" :loading="isLoading" @click="reload()" />
+        <GroupBy v-if="route.params.viewType === 'group_by'" v-model="list" :doctype="doctype"
+          @update="updateGroupBy" />
+        <Filter v-model="list" :doctype="doctype" :default_filters="filters" @update="updateFilter" />
+        <SortBy v-if="route.params.viewType !== 'kanban'" v-model="list" :doctype="doctype" @update="updateSort" />
+        <KanbanSettings v-if="route.params.viewType === 'kanban'" v-model="list" :doctype="doctype"
+          @update="updateKanbanSettings" />
+        <ColumnSettings v-else-if="!options.hideColumnsButton" v-model="list" :doctype="doctype"
+          @update="(isDefault) => updateColumns(isDefault)" />
+        <Dropdown v-if="route.params.viewType !== 'kanban' || isManager()" placement="right" :options="[
+          {
+            group: __('Options'),
+            hideLabel: true,
+            items: [
+              {
+                label: __('Import'),
+                icon: () => h(ImportIcon, { class: 'h-4 w-4' }),
+                onClick: () =>
+                  router.push({
+                    name: 'NewDataImport',
+                    params: { doctype: doctype },
+                  }),
+                condition: () =>
+                  !options.hideColumnsButton &&
+                  route.params.viewType !== 'kanban',
+              },
+              {
+                label: __('Export'),
+                icon: () => h(ExportIcon, { class: 'h-4 w-4' }),
+                onClick: () => (showExportDialog = true),
+                condition: () =>
+                  !options.hideColumnsButton &&
+                  route.params.viewType !== 'kanban',
+              },
+              {
+                label: __('Customize quick filters'),
+                icon: () => h(QuickFilterIcon, { class: 'h-4 w-4' }),
+                onClick: () => showCustomizeQuickFilter(),
+                condition: () => isManager(),
+              },
+            ],
+          },
+        ]">
           <template #default>
             <Button :tooltip="__('More options')" icon="more-horizontal" />
           </template>
@@ -236,64 +132,46 @@
       </div>
     </div>
   </div>
-  <ViewModal
-    v-model="showViewModal"
-    v-model:view="viewModalObj"
-    :doctype="doctype"
-    :options="{
-      afterCreate: async (v) => {
-        await reloadView()
-        viewUpdated = false
-        router.push({
-          name: route.name,
-          params: { viewType: v.type || 'list' },
-          query: { view: v.name },
-        })
+  <ViewModal v-model="showViewModal" v-model:view="viewModalObj" :doctype="doctype" :options="{
+    afterCreate: async (v) => {
+      await reloadView()
+      viewUpdated = false
+      router.push({
+        name: route.name,
+        params: { viewType: v.type || 'list' },
+        query: { view: v.name },
+      })
+    },
+    afterUpdate: () => {
+      viewUpdated = false
+      reloadView()
+      list.reload()
+    },
+  }" />
+  <Dialog v-model="showExportDialog" :options="{
+    title: __('Export'),
+    actions: [
+      {
+        label: __('Download'),
+        variant: 'solid',
+        onClick: () => exportRows(),
       },
-      afterUpdate: () => {
-        viewUpdated = false
-        reloadView()
-        list.reload()
-      },
-    }"
-  />
-  <Dialog
-    v-model="showExportDialog"
-    :options="{
-      title: __('Export'),
-      actions: [
-        {
-          label: __('Download'),
-          variant: 'solid',
-          onClick: () => exportRows(),
-        },
-      ],
-    }"
-  >
+    ],
+  }">
     <template #body-content>
-      <FormControl
-        variant="outline"
-        :label="__('Export type')"
-        type="select"
-        :options="[
-          {
-            label: __('Excel'),
-            value: 'Excel',
-          },
-          {
-            label: __('CSV'),
-            value: 'CSV',
-          },
-        ]"
-        v-model="export_type"
-        :placeholder="__('Excel')"
-      />
+      <FormControl variant="outline" :label="__('Export type')" type="select" :options="[
+        {
+          label: __('Excel'),
+          value: 'Excel',
+        },
+        {
+          label: __('CSV'),
+          value: 'CSV',
+        },
+      ]" v-model="export_type" :placeholder="__('Excel')" />
       <div class="mt-3">
-        <FormControl
-          type="checkbox"
-          :label="__('Export all {0} record(s)', [list.data.total_count])"
-          v-model="export_all"
-        />
+        <FormControl type="checkbox" :label="__('Export all {0} record(s)', [list.data.total_count])"
+          v-model="export_all" />
       </div>
     </template>
   </Dialog>
@@ -1289,6 +1167,24 @@ function applyFilter({ event, idx, column, item, firstColumn }) {
   updateFilter(filters)
 }
 
+
+// start custom code for the mobile filter in popup
+function applyMobileFilter(phone) {
+  const digits = String(phone || '').replace(/\D/g, '')
+  const last10 = digits.slice(-10)
+  const filters = { ...list.value.params.filters }
+
+  if (last10.length === 10) {
+    filters.mobile_no = ['LIKE', `%${last10}%`]
+  } else {
+    delete filters.mobile_no
+  }
+
+  updateFilter(filters)
+}
+// end custom code for the mobile filter in popup
+
+
 function applyLikeFilter() {
   let filters = { ...list.value.params.filters }
   if (!filters._liked_by) {
@@ -1311,6 +1207,7 @@ function likeDoc({ name, liked }) {
 defineExpose({
   applyFilter,
   applyLikeFilter,
+  applyMobileFilter,
   likeDoc,
   updateKanbanSettings,
   loadMoreKanban,

@@ -2,13 +2,19 @@
   <div>
     <div class="mb-1 flex items-center justify-stretch gap-2 py-1 text-base">
       <div class="inline-flex items-center flex-wrap gap-1 text-ink-gray-5">
-        <Avatar
+        <!-- <Avatar
           :image="activity._caller.image"
           :label="activity._caller.label"
           size="md"
         />
         <span class="font-medium text-ink-gray-8 ml-1">
           {{ activity._caller.label }}
+        </span> -->
+        <Avatar :image="activity?._caller?.image" :label="activity?._caller?.label?.trim() || __('Unknown')"
+          size="md" />
+
+        <span class="font-medium text-ink-gray-8 ml-1">
+          {{ activity?._caller?.label?.trim() || __('Unknown') }}
         </span>
         <span>{{
           activity.type == 'Incoming'
@@ -24,10 +30,8 @@
         </Tooltip>
       </div>
     </div>
-    <div
-      @click="showCallLogDetailModal = true"
-      class="flex flex-col gap-2 border cursor-pointer border-outline-gray-modals rounded-md bg-surface-cards px-3 py-2.5 text-ink-gray-9"
-    >
+    <div @click="showCallLogDetailModal = true"
+      class="flex flex-col gap-2 border cursor-pointer border-outline-gray-modals rounded-md bg-surface-cards px-3 py-2.5 text-ink-gray-9">
       <div class="flex items-center justify-between">
         <div class="inline-flex gap-2 items-center text-base font-medium">
           <div>
@@ -39,7 +43,7 @@
           </div>
         </div>
         <div>
-          <MultipleAvatar
+          <!-- <MultipleAvatar
             :avatars="[
               {
                 image: activity._caller.image,
@@ -53,7 +57,19 @@
               },
             ]"
             size="sm"
-          />
+          /> -->
+          <MultipleAvatar :avatars="[
+            {
+              image: activity?._caller?.image,
+              label: activity?._caller?.label?.trim() || __('Unknown'),
+              name: activity?._caller?.label?.trim() || __('Unknown'),
+            },
+            {
+              image: activity?._receiver?.image,
+              label: activity?._receiver?.label?.trim() || __('Unknown'),
+              name: activity?._receiver?.label?.trim() || __('Unknown'),
+            },
+          ]" size="sm" />
         </div>
       </div>
       <div class="flex items-center flex-wrap gap-2">
@@ -62,47 +78,27 @@
             <CalendarIcon class="size-3" />
           </template>
         </Badge>
-        <Badge
-          v-if="activity.status == 'Completed'"
-          :label="activity._duration"
-        >
+        <Badge v-if="activity.status == 'Completed'" :label="activity._duration">
           <template #prefix>
             <DurationIcon class="size-3" />
           </template>
         </Badge>
-        <Badge
-          v-if="activity.recording_url"
-          :label="activity.show_recording ? __('Hide recording') : __('Listen')"
-          class="cursor-pointer"
-          @click.stop="activity.show_recording = !activity.show_recording"
-        >
+        <Badge v-if="activity.recording_url" :label="activity.show_recording ? __('Hide recording') : __('Listen')"
+          class="cursor-pointer" @click.stop="activity.show_recording = !activity.show_recording">
           <template #prefix>
             <PlayIcon class="size-3" />
           </template>
         </Badge>
-        <Badge
-          :label="statusLabelMap[activity.status]"
-          :theme="statusColorMap[activity.status]"
-        />
+        <Badge :label="statusLabelMap[activity.status]" :theme="statusColorMap[activity.status]" />
       </div>
-      <div
-        v-if="activity.show_recording && activity.recording_url"
-        class="flex flex-col items-center justify-between"
-        @click.stop
-      >
+      <div v-if="activity.show_recording && activity.recording_url" class="flex flex-col items-center justify-between"
+        @click.stop>
         <AudioPlayer :src="activity.recording_url" />
       </div>
     </div>
-    <CallLogDetailModal
-      v-model="showCallLogDetailModal"
-      v-model:callLogModal="showCallLogModal"
-      v-model:callLog="callLog"
-    />
-    <CallLogModal
-      v-if="showCallLogModal"
-      v-model="showCallLogModal"
-      :data="callLog.data"
-    />
+    <CallLogDetailModal v-model="showCallLogDetailModal" v-model:callLogModal="showCallLogModal"
+      v-model:callLog="callLog" />
+    <CallLogModal v-if="showCallLogModal" v-model="showCallLogModal" :data="callLog.data" />
   </div>
 </template>
 <script setup>

@@ -20,7 +20,10 @@
         <div class="sf-lead-name">{{ store.leadName }}</div>
 
         <!-- Number -->
-        <div class="sf-number">{{ formattedNumber }}</div>
+
+        <button class="sf-number sf-number-link" @click="filterLeadsByTappedNumber">
+          {{ formattedNumber }}
+        </button>
 
         <!-- Status block -->
         <div class="sf-status-block">
@@ -50,7 +53,35 @@
 import { computed } from 'vue'
 import { useSmartflowCallStore } from '@/stores/smartflow'
 
+import { useRoute , useRouter } from 'vue-router'
+import { useDialerLeadFilterStore  } from '@/stores/filterIntent'
+
 const store = useSmartflowCallStore()
+
+const router = useRouter()
+const route = useRoute()
+
+const dialerLeadFilter  = useDialerLeadFilterStore()
+
+function getDialerPhone() {
+  // Keep raw; Leads-side method normalizes to last 10
+  return String(store.from_number || store.to || '').trim()
+}
+
+async function filterLeadsByTappedNumber() {
+  const phone = getDialerPhone()
+  if (!phone) return
+
+  dialerLeadFilter.request(phone)
+
+  if (route.name !== 'Leads') {
+    await router.push({
+      name: 'Leads',
+      params: { viewType: 'list' },
+    })
+  }
+}
+
 
 const formattedTime = computed(() => {
   const m = Math.floor(store.timer / 60)

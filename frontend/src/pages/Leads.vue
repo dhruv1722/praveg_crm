@@ -305,7 +305,8 @@ import { callEnabled } from '@/composables/settings'
 import { formatDate, timeAgo, website, formatTime } from '@/utils'
 import { Avatar, Tooltip, Dropdown } from 'frappe-ui'
 import { useRoute } from 'vue-router'
-import { ref, computed, reactive, h } from 'vue'
+import { ref, computed, reactive, h, watch, nextTick } from 'vue'
+import { useDialerLeadFilterStore } from '@/stores/filterIntent'
 
 const { getFormattedPercent, getFormattedFloat, getFormattedCurrency } =
   getMeta('CRM Lead')
@@ -326,6 +327,39 @@ const loadMore = ref(1)
 const triggerResize = ref(1)
 const updatedPageCount = ref(20)
 const viewControls = ref(null)
+
+
+// start custom code for the mobile filter in popup
+const dialerLeadFilter = useDialerLeadFilterStore()
+
+async function tryApplyPendingDialerFilter() {
+  if (route.name !== 'Leads') return
+  if (!viewControls.value?.applyMobileFilter) return
+  if (!leads.value?.data) return
+
+  const pending = dialerLeadFilter.take()
+  if (!pending?.phone) return
+
+  await nextTick()
+  viewControls.value.applyMobileFilter(pending.phone)
+}
+
+watch(
+  () => [
+    dialerLeadFilter.seq,
+    route.name,
+    !!viewControls.value?.applyMobileFilter,
+    !!leads.value?.data,
+  ],
+  () => {
+    tryApplyPendingDialerFilter()
+  },
+  { immediate: true, flush: 'post' },
+)
+// end custom code for the mobile filter in popup
+
+
+
 
 function getRow(name, field) {
   function getValue(value) {
