@@ -43,37 +43,46 @@ class CRMOrganization(Document):
 	@staticmethod
 	def default_list_data():
 		columns = [
-			{
-				"label": "Organization",
-				"type": "Data",
-				"key": "organization_name",
-				"width": "16rem",
-			},
-			{
-				"label": "Website",
-				"type": "Data",
-				"key": "website",
-				"width": "14rem",
-			},
-			{
-				"label": "Industry",
-				"type": "Link",
-				"key": "industry",
-				"options": "CRM Industry",
-				"width": "14rem",
-			},
-			{
-				"label": "Annual revenue",
-				"type": "Currency",
-				"key": "annual_revenue",
-				"width": "14rem",
-			},
-			{
-				"label": "Last modified",
-				"type": "Datetime",
-				"key": "modified",
-				"width": "8rem",
-			},
+           {
+                "label": "Organization",
+                "type": "Data",
+                "key": "organization_name",
+                "width": "16rem",
+            },
+            {
+                "label": "No. of employees",
+                "type": "Select",
+                "key": "no_of_employees",
+                "width": "10rem",
+                "align": "left",
+            },
+            {
+                "label": "Industry",
+                "type": "Link",
+                "key": "industry",
+                "options": "CRM Industry",
+                "width": "14rem",
+            },
+            {
+                "label": "Website",
+                "type": "Data",
+                "key": "website",
+                "width": "10rem",
+                "align": "left",
+            },
+            {
+                "label": "Last modified",
+                "type": "Datetime",
+                "key": "modified",
+                "width": "8rem",
+            },
+            {
+                "label": "Created on",
+                "type": "Datetime",
+                "key": "creation",
+                "width": "10rem",
+                "align": "left",
+            },
 		]
 		rows = [
 			"name",

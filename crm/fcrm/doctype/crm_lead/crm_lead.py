@@ -384,36 +384,42 @@ class CRMLead(Document):
 	@staticmethod
 	def default_list_data():
 		columns = [
-			{
-				"label": "Name",
-				"type": "Data",
-				"key": "lead_name",
-				"width": "12rem",
-			},
-			{
-				"label": "Status",
-				"type": "Select",
-				"key": "status",
-				"width": "8rem",
-			},
-			{
-				"label": "Mobile no",
-				"type": "Data",
-				"key": "mobile_no",
-				"width": "11rem",
-			},
-			{
-				"label": "Lead owner",
-				"type": "Link",
-				"key": "lead_owner",
-				"width": "10rem",
-			},
-			{
-				"label": "Last modified",
-				"type": "Datetime",
-				"key": "modified",
-				"width": "8rem",
-			},
+           {
+                "label": "Name",
+                "type": "Data",
+                "key": "lead_name",
+                "width": "14rem",
+            },
+            {
+                "label": "Status",
+                "type": "Select",
+                "key": "status",
+                "width": "8rem",
+            },
+            {
+                "label": "Mobile no",
+                "type": "Data",
+                "key": "mobile_no",
+                "width": "13rem",
+            },
+            {
+                "label": "Lead owner",
+                "type": "Link",
+                "key": "lead_owner",
+                "width": "12rem",
+            },
+            {
+                "label": "Source",
+                "type": "Text",
+                "key": "source",
+                "width": "10rem",
+            },
+            {
+                "label": "Last modified",
+                "type": "Datetime",
+                "key": "modified",
+                "width": "8rem",
+            },
 		]
 		rows = [
 			"name",

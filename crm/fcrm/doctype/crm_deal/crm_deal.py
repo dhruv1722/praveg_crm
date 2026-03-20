@@ -258,50 +258,45 @@ class CRMDeal(Document):
 	@staticmethod
 	def default_list_data():
 		columns = [
-			{
-				"label": "Organization",
-				"type": "Link",
-				"key": "organization",
-				"options": "CRM Organization",
-				"width": "11rem",
-			},
-			{
-				"label": "Annual revenue",
-				"type": "Currency",
-				"key": "annual_revenue",
-				"align": "right",
-				"width": "9rem",
-			},
-			{
-				"label": "Status",
-				"type": "Select",
-				"key": "status",
-				"width": "10rem",
-			},
-			{
-				"label": "Email",
-				"type": "Data",
-				"key": "email",
-				"width": "12rem",
-			},
-			{
-				"label": "Mobile no",
-				"type": "Data",
-				"key": "mobile_no",
-				"width": "11rem",
-			},
-			{
-				"label": "Assigned to",
-				"type": "Text",
-				"key": "_assign",
-				"width": "10rem",
-			},
-			{
-				"label": "Last modified",
-				"type": "Datetime",
-				"key": "modified",
-				"width": "8rem",
-			},
+           {
+                "label": "Name",
+                "type": "Data",
+                "key": "lead_name",
+                "width": "14rem",
+            },
+            {
+                "label": "Status",
+                "type": "Link",
+                "key": "status",
+                "width": "12rem",
+                "align": "left",
+            },
+            {
+                "label": "Mobile no",
+                "type": "Data",
+                "key": "mobile_no",
+                "width": "11rem",
+            },
+            {
+                "label": "Deal owner",
+                "type": "Link",
+                "key": "deal_owner",
+                "width": "10rem",
+                "align": "left",
+            },
+            {
+                "label": "Source",
+                "type": "Link",
+                "key": "source",
+                "width": "10rem",
+                "align": "left",
+            },
+            {
+                "label": "Last modified",
+                "type": "Datetime",
+                "key": "modified",
+                "width": "8rem",
+            },
 		]
 		rows = [
 			"name",

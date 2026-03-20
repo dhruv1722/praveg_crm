@@ -2,14 +2,6 @@
   <div>
     <div class="mb-1 flex items-center justify-stretch gap-2 py-1 text-base">
       <div class="inline-flex items-center flex-wrap gap-1 text-ink-gray-5">
-        <!-- <Avatar
-          :image="activity._caller.image"
-          :label="activity._caller.label"
-          size="md"
-        />
-        <span class="font-medium text-ink-gray-8 ml-1">
-          {{ activity._caller.label }}
-        </span> -->
         <Avatar :image="activity?._caller?.image" :label="activity?._caller?.label?.trim() || __('Unknown')"
           size="md" />
 
@@ -43,21 +35,6 @@
           </div>
         </div>
         <div>
-          <!-- <MultipleAvatar
-            :avatars="[
-              {
-                image: activity._caller.image,
-                label: activity._caller.label,
-                name: activity._caller.label,
-              },
-              {
-                image: activity._receiver.image,
-                label: activity._receiver.label,
-                name: activity._receiver.label,
-              },
-            ]"
-            size="sm"
-          /> -->
           <MultipleAvatar :avatars="[
             {
               image: activity?._caller?.image,

@@ -31,6 +31,12 @@ class CustomContact(Contact):
 				"key": "company_name",
 				"width": "12rem",
 			},
+            {
+                "label": "Last modified",
+                "type": "Datetime",
+                "key": "modified",
+                "width": "8rem",
+            },
 			{
 				"label": "Last modified",
 				"type": "Datetime",
@@ -39,12 +45,14 @@ class CustomContact(Contact):
 			},
 		]
 		rows = [
-			"name",
-			"full_name",
-			"company_name",
-			"email_id",
-			"mobile_no",
-			"modified",
-			"image",
+            "name",
+            "contact",
+            "full_name",
+            "email",
+            "mobile_no",
+            "phone",
+            "is_primary",
+            "modified",
+            "creation",
 		]
 		return {"columns": columns, "rows": rows}
