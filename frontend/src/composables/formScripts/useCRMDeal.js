@@ -98,9 +98,9 @@ export function useCRMDeal(doc, document) {
       doc.value.custom_no_of_nights = 0
     }
 
-    if (error && showToast) {
-      toast.error(error)
-    }
+    // if (error && showToast) {
+    //   toast.error(error)
+    // }
 
     return error
   }
@@ -518,7 +518,7 @@ export function useCRMDeal(doc, document) {
     watch(
       () => [doc.value.custom_check_in, doc.value.custom_check_out],
       () => {
-        validateDates(true) // show toast on every keystroke
+        validateDates(false) // show toast on every keystroke
       }
     )
 
@@ -537,7 +537,7 @@ export function useCRMDeal(doc, document) {
   }
 
   function beforeSave() {
-    return validateDates(true) // don't show toast
+    return validateDates(false) // don't show toast
   }
 
   async function generate_quotation_pdf() {
@@ -548,43 +548,28 @@ export function useCRMDeal(doc, document) {
 
     toast.info('Generating quotation...', { icon: LoadingIndicator })
 
-    const quotationPdfResource = createResource({
-      url: "praveg.api.pdf.generate_quotation_version",
-      params: {
-        doctype: "CRM Deal",
-        name: doc.value.name,
-      },
-      auto: true,
-      onSuccess(data) {
-        document.reload()
+    document.generateQuotationVersion.submit(null, {
+      onSuccess: (data) => {
+        // document.reload()
         toast.success(
-          data?.version
-            ? `Quotation v${data.version} generated`
-            : 'Quotation generated'
+          data?.message.version ? `Quotation v${data.message.version} generated` : 'Quotation generated'
         )
       },
-      onError(err) {
-        toast.error(err?.messages?.[0] || "Failed to generate quotation")
-      }
+      onError: (err) => {
+        toast.error(err?.messages?.[0] || 'Failed to generate quotation')
+      },
     })
   }
 
   // near the bottom, before the return
   async function generate_quotation_template() {
-    const quotationTemplateResource = createResource({
-      url: "praveg.api.fcrm.generate_whatsapp_quotation_template",
-      params: {
-        doctype: "CRM Deal",
-        docname: doc.value?.name
-      },
-      auto: true,
-      onSuccess(data) {
-        doc.value.custom_quotation_template = data?.template
+    document.generateQuotationTemplate.submit(null, {
+      onSuccess: (data) => {
         toast.success('Template generated')
       },
-      onError(err) {
-        toast.error(err?.messages?.[0] || "Failed to generate template")
-      }
+      onError: (err) => {
+        toast.error(err?.messages?.[0] || 'Failed to generate template')
+      },
     })
   }
 
@@ -594,26 +579,25 @@ export function useCRMDeal(doc, document) {
       return
     }
 
-    let url = "https://wa.me/" + doc.value.mobile_no + "?text=" + encodeURIComponent(doc.value.custom_quotation_template);
+    const phone = String(doc.value.mobile_no || '').replace(/\D/g, '')
+    if (!phone) {
+      toast.error('Invalid phone number')
+      return
+    }
+
+    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_quotation_template)}`
 
     window.open(url, "_blank");
   }
 
   async function generate_payment_template() {
-    const paymentTemplateResource = createResource({
-      url: "praveg.api.fcrm.generate_whatsapp_payment_link_template",
-      params: {
-        doctype: "CRM Deal",
-        docname: doc.value?.name
-      },
-      auto: true,
-      onSuccess(data) {
-        doc.value.custom_payment_link_template = data?.template
+    document.generatePaymentTemplate.submit(null, {
+      onSuccess: (data) => {
         toast.success('Template generated')
       },
-      onError(err) {
-        toast.error(err?.messages?.[0] || "Failed to generate template")
-      }
+      onError: (err) => {
+        toast.error(err?.messages?.[0] || 'Failed to generate template')
+      },
     })
   }
 
@@ -623,7 +607,13 @@ export function useCRMDeal(doc, document) {
       return
     }
 
-    let url = "https://wa.me/" + doc.value.mobile_no + "?text=" + encodeURIComponent(doc.value.custom_payment_link_template);
+    const phone = String(doc.value.mobile_no || '').replace(/\D/g, '')
+    if (!phone) {
+      toast.error('Invalid phone number')
+      return
+    }
+
+    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_payment_link_template)}`
 
     window.open(url, "_blank");
   }

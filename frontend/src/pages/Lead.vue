@@ -225,7 +225,7 @@ const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
 
-const crmLeadScript = useCRMLead(doc)
+const crmLeadScript = useCRMLead(doc , document)
 
 // custom code
 provide('fieldButtonHandlers', crmLeadScript.buttonHandlers || {})

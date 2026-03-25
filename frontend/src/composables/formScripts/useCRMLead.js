@@ -540,17 +540,6 @@ export function useCRMLead(doc, document) {
     return validateDates(false) // don't show toast
   }
 
-  async function applyFreshDocument(serverDoc = null) {
-    if (serverDoc) {
-      document.setDoc(serverDoc)
-      document.originalDoc = JSON.parse(JSON.stringify(document.doc))
-      document.isDirty = false
-      return
-    }
-
-    // await document.reload()
-  }
-
   async function generate_quotation_pdf() {
     if (!doc.value?.name) {
       toast.error('Please save the quotation first')
@@ -570,56 +559,18 @@ export function useCRMLead(doc, document) {
         toast.error(err?.messages?.[0] || 'Failed to generate quotation')
       },
     })
-
-    // const quotationPdfResource = createResource({
-    //   url: "praveg.api.pdf.generate_quotation_version",
-    //   params: {
-    //     doctype: "CRM Lead",
-    //     name: doc.value.name,
-    //   },
-    //   auto: true,
-    //   onSuccess(data) {
-    //     document.reload()
-    //     toast.success(
-    //       data?.version
-    //         ? `Quotation v${data.version} generated`
-    //         : 'Quotation generated'
-    //     )
-    //   },
-    //   onError(err) {
-    //     toast.error(err?.messages?.[0] || "Failed to generate quotation")
-    //   }
-    // })
   }
 
   // near the bottom, before the return
   async function generate_quotation_template() {
     document.generateQuotationTemplate.submit(null, {
       onSuccess: (data) => {
-        // doc.value.custom_quotation_template = data?.template
-        // applyFreshDocument(data?.docs[0])
         toast.success('Template generated')
       },
       onError: (err) => {
         toast.error(err?.messages?.[0] || 'Failed to generate template')
       },
     })
-
-    // const quotationTemplateResource = createResource({
-    //   url: "praveg.api.fcrm.generate_whatsapp_quotation_template",
-    //   params: {
-    //     doctype: "CRM Lead",
-    //     docname: doc.value?.name
-    //   },
-    //   auto: true,
-    //   onSuccess(data) {
-    //     doc.value.custom_quotation_template = data?.template
-    //     toast.success('Template generated')
-    //   },
-    //   onError(err) {
-    //     toast.error(err?.messages?.[0] || "Failed to generate template")
-    //   }
-    // })
   }
 
   async function send_whatsapp_quotation() {
@@ -648,22 +599,6 @@ export function useCRMLead(doc, document) {
         toast.error(err?.messages?.[0] || 'Failed to generate template')
       },
     })
-
-    // const paymentTemplateResource = createResource({
-    //   url: "praveg.api.fcrm.generate_whatsapp_payment_link_template",
-    //   params: {
-    //     doctype: "CRM Lead",
-    //     docname: doc.value?.name
-    //   },
-    //   auto: true,
-    //   onSuccess(data) {
-    //     doc.value.custom_payment_link_template = data?.template
-    //     toast.success('Template generated')
-    //   },
-    //   onError(err) {
-    //     toast.error(err?.messages?.[0] || "Failed to generate template")
-    //   }
-    // })
   }
 
   async function send_whatsapp_payment() {
