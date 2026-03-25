@@ -51,6 +51,8 @@
             <Button :tooltip="__('Make a call')" :icon="PhoneIcon" :loading="isCallInProgress"
               @click="makeSmartFlowCall" />
 
+            <Button :tooltip="__('Preview Quotation')" :icon="DocumentIcon" @click="previewQuotation()" />
+
             <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
             <Button :tooltip="__('Send an email')" :icon="Email2Icon" @click="
@@ -263,7 +265,19 @@ const errorMessage = ref('')
 const showDeleteLinkedDocModal = ref(false)
 
 const { triggerOnChange, assignees, permissions, document, scripts, error } =
-  useDocument('CRM Deal', props.dealId)
+  useDocument('CRM Deal', props.dealId, {
+    whitelistedMethods: {
+      generateQuotationVersion: {
+        method: 'generate_quotation_version',
+      },
+      generateQuotationTemplate: {
+        method: 'generate_whatsapp_quotation_template',
+      },
+      generatePaymentTemplate: {
+        method: 'generate_whatsapp_payment_link_template',
+      }
+    },
+  })
 
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
@@ -485,6 +499,13 @@ const tabs = computed(() => {
       label: __('Tasks'),
       icon: TaskIcon,
     },
+    // custom code
+    {
+      name: 'Payment',
+      label: __('Payment'),
+      icon: DetailsIcon, // change icon if you prefer
+    },
+    // custom code
     {
       name: 'Notes',
       label: __('Notes'),
@@ -715,4 +736,14 @@ function reloadAssignees(data) {
     assignees.reload()
   }
 }
+
+
+// custom code
+function previewQuotation() {
+  window.open(
+    `/api/method/praveg.api.pdf.preview_quotation_pdf?doctype=CRM Deal&name=${props.dealId}`,
+    '_blank'
+  )
+}
+// custom code
 </script>

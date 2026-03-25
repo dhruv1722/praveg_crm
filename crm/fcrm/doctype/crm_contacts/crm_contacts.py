@@ -31,50 +31,43 @@ class CRMContacts(Document):
     @staticmethod
     def default_list_data():
         columns = [
-            {
-                "label": "Contact",
-                "type": "Link",
-                "key": "contact",
-                "width": "10rem",
-                "align": "left",
-            },
-            {
-                "label": "Name",
-                "type": "Data",
-                "key": "full_name",
-                "width": "12rem",
-            },
-            {
-                "label": "Email",
-                "type": "Data",
-                "key": "email",
-                "width": "250px",
-            },
-            {
-                "label": "Phone",
-                "type": "Data",
-                "key": "mobile_no",
-                "width": "12rem",
-            },
-            {
-                "label": "Landline",
-                "type": "Data",
-                "key": "phone",
-                "width": "12rem",
-            },
-            {
-                "label": "Primary",
-                "type": "Check",
-                "key": "is_primary",
-                "width": "8rem",
-            },
+			{
+				"label": "Name",
+				"type": "Data",
+				"key": "full_name",
+				"width": "17rem",
+			},
+			{
+				"label": "Email",
+				"type": "Data",
+				"key": "email_id",
+				"width": "12rem",
+			},
+			{
+				"label": "Phone",
+				"type": "Data",
+				"key": "mobile_no",
+				"width": "12rem",
+			},
+			{
+				"label": "Organization",
+				"type": "Data",
+				"key": "company_name",
+				"width": "12rem",
+			},
             {
                 "label": "Last modified",
                 "type": "Datetime",
                 "key": "modified",
                 "width": "8rem",
             },
-            {
+			{
+				"label": "Last modified",
+				"type": "Datetime",
+				"key": "modified",
+				"width": "8rem",
+			},
+			{
                 "label": "Created on",
                 "type": "Datetime",
                 "key": "creation",

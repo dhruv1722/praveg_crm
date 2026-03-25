@@ -83,8 +83,8 @@ const saveDataFieldsChanges = inject('saveDataFieldsChanges', null)
 const showApplyButton = computed(() => {
   return (
     ['CRM Lead', 'CRM Deal'].includes(props.parentDoctype) &&
-    props.doctype === 'CRM Guest Details' &&
-    (props.data?.parentfield || '') === 'custom_guest'
+    ['CRM Guest Details', 'Payment Receipt'].includes(props.doctype) &&
+    ['custom_guest', 'custom_payment_receipt'].includes(props.data?.parentfield || '')
   )
 })
 

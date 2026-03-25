@@ -43,6 +43,13 @@ class CustomContact(Contact):
 				"key": "modified",
 				"width": "8rem",
 			},
+			{
+                "label": "Created on",
+                "type": "Datetime",
+                "key": "creation",
+                "width": "10rem",
+                "align": "left",
+            },
 		]
 		rows = [
             "name",

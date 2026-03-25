@@ -100,7 +100,7 @@ import AttachmentIcon from '@/components/Icons/AttachmentIcon.vue'
 import AttachmentItem from '@/components/AttachmentItem.vue'
 import EmailMultiSelect from '@/components/Controls/EmailMultiSelect.vue'
 import EmailTemplateSelectorModal from '@/components/Modals/EmailTemplateSelectorModal.vue'
-import { TextEditorBubbleMenu, TextEditor, FileUploader, call } from 'frappe-ui'
+import { TextEditorBubbleMenu, TextEditor, FileUploader, call , toast } from 'frappe-ui'
 import { useTelemetry } from 'frappe-ui/frappe'
 import { validateEmail } from '@/utils'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -188,8 +188,13 @@ const showEmailTemplateSelectorModal = ref(false)
 const templateAttachmentRules = {
   'CRM Lead': {
     templates: ['Quotation Template'], // use the template NAME from Desk
-    method: 'praveg.api.fcrm.generate_lead_pdf_file',
-    args: (doc) => ({ lead: doc.name }),
+    method: 'praveg.api.pdf.get_latest_quotation_attachment',
+    args: (doc) => ({ doctype: doc.doctype, name: doc.name }),
+  },
+  'CRM Deal': {
+    templates: ['Quotation Template - CRM Deal'],
+    method: 'praveg.api.pdf.get_latest_quotation_attachment',
+    args: (doc) => ({ doctype: doc.doctype, name: doc.name }),
   },
 }
 // custom code
@@ -229,8 +234,8 @@ async function applyEmailTemplate(template) {
       }
     } catch (err) {
       // optional toast if you import it
-      // toast.error(err?.messages?.[0] || 'Failed to attach quotation PDF')
-      console.warn('Failed to attach quotation PDF', err)
+      toast.error(err?.messages?.[0] || 'Failed to attach quotation PDF')
+      // console.warn('Failed to attach quotation PDF', err)
     }
   }
   // custom code

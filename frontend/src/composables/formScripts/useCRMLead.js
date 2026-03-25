@@ -1,8 +1,8 @@
 import { watch } from 'vue'
-import { toast, createResource } from 'frappe-ui'
+import { toast, createResource, LoadingIndicator } from 'frappe-ui'
 import dayjs from "dayjs"
 
-export function useCRMLead(doc) {
+export function useCRMLead(doc, document) {
 
   const watchedRows = new WeakSet()
   const mealTaxPercentByRow = new WeakMap()
@@ -98,9 +98,9 @@ export function useCRMLead(doc) {
       doc.value.custom_no_of_nights = 0
     }
 
-    if (error && showToast) {
-      toast.error(error)
-    }
+    // if (error && showToast) {
+    //   toast.error(error)
+    // }
 
     return error
   }
@@ -125,7 +125,6 @@ export function useCRMLead(doc) {
           row.extra_bed_rate = doc.value.custom_extra_bed_rate
         }
       },
-      // { immediate: true }
     )
 
     // Watch all fields that should trigger recalculation
@@ -152,7 +151,7 @@ export function useCRMLead(doc) {
       () => {
         calculateChildRow(row)
       },
-      { deep: true } // immediate ensures existing rows calculate on load
+      { deep: true }
     )
 
 
@@ -214,7 +213,6 @@ export function useCRMLead(doc) {
 
         calculateChildRow(row)
       },
-      // { immediate: true }
     )
   }
 
@@ -433,6 +431,7 @@ export function useCRMLead(doc) {
       },
       auto: true,
       onSuccess(data) {
+        row.actual_room_rate = toNumber(data?.rc_base_rate)
         row.room_rate_per_night = toNumber(data?.rc_base_rate)
         calculateChildRow(row)
       },
@@ -514,15 +513,13 @@ export function useCRMLead(doc) {
       () => {
         fetchExtraBedRate(doc)
       },
-      { immediate: true }
     )
 
     watch(
       () => [doc.value.custom_check_in, doc.value.custom_check_out],
       () => {
-        validateDates(true) // show toast on every keystroke
-      },
-      // { immediate: true }
+        validateDates(false) // show toast on every keystroke
+      }
     )
 
     watch(
@@ -540,26 +537,89 @@ export function useCRMLead(doc) {
   }
 
   function beforeSave() {
-    return validateDates(true) // don't show toast
+    return validateDates(false) // don't show toast
+  }
+
+  async function applyFreshDocument(serverDoc = null) {
+    if (serverDoc) {
+      document.setDoc(serverDoc)
+      document.originalDoc = JSON.parse(JSON.stringify(document.doc))
+      document.isDirty = false
+      return
+    }
+
+    // await document.reload()
+  }
+
+  async function generate_quotation_pdf() {
+    if (!doc.value?.name) {
+      toast.error('Please save the quotation first')
+      return
+    }
+
+    toast.info('Generating quotation...', { icon: LoadingIndicator })
+
+    document.generateQuotationVersion.submit(null, {
+      onSuccess: (data) => {
+        // document.reload()
+        toast.success(
+          data?.message.version ? `Quotation v${data.message.version} generated` : 'Quotation generated'
+        )
+      },
+      onError: (err) => {
+        toast.error(err?.messages?.[0] || 'Failed to generate quotation')
+      },
+    })
+
+    // const quotationPdfResource = createResource({
+    //   url: "praveg.api.pdf.generate_quotation_version",
+    //   params: {
+    //     doctype: "CRM Lead",
+    //     name: doc.value.name,
+    //   },
+    //   auto: true,
+    //   onSuccess(data) {
+    //     document.reload()
+    //     toast.success(
+    //       data?.version
+    //         ? `Quotation v${data.version} generated`
+    //         : 'Quotation generated'
+    //     )
+    //   },
+    //   onError(err) {
+    //     toast.error(err?.messages?.[0] || "Failed to generate quotation")
+    //   }
+    // })
   }
 
   // near the bottom, before the return
   async function generate_quotation_template() {
-    const quotationTemplateResource = createResource({
-      url: "praveg.api.fcrm.generate_whatsapp_quotation_template",
-      params: {
-        doctype: "CRM Lead",
-        docname: doc.value?.name
-      },
-      auto: true,
-      onSuccess(data) {
-        doc.value.custom_quotation_template = data?.template
+    document.generateQuotationTemplate.submit(null, {
+      onSuccess: (data) => {
+        // doc.value.custom_quotation_template = data?.template
+        // applyFreshDocument(data?.docs[0])
         toast.success('Template generated')
       },
-      onError(err) {
-        toast.error(err?.messages?.[0] || "Failed to generate template")
-      }
+      onError: (err) => {
+        toast.error(err?.messages?.[0] || 'Failed to generate template')
+      },
     })
+
+    // const quotationTemplateResource = createResource({
+    //   url: "praveg.api.fcrm.generate_whatsapp_quotation_template",
+    //   params: {
+    //     doctype: "CRM Lead",
+    //     docname: doc.value?.name
+    //   },
+    //   auto: true,
+    //   onSuccess(data) {
+    //     doc.value.custom_quotation_template = data?.template
+    //     toast.success('Template generated')
+    //   },
+    //   onError(err) {
+    //     toast.error(err?.messages?.[0] || "Failed to generate template")
+    //   }
+    // })
   }
 
   async function send_whatsapp_quotation() {
@@ -568,27 +628,42 @@ export function useCRMLead(doc) {
       return
     }
 
-    let url = "https://wa.me/" + doc.value.mobile_no + "?text=" + encodeURIComponent(doc.value.custom_quotation_template);
+    const phone = String(doc.value.mobile_no || '').replace(/\D/g, '')
+    if (!phone) {
+      toast.error('Invalid phone number')
+      return
+    }
+
+    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_quotation_template)}`
 
     window.open(url, "_blank");
   }
 
   async function generate_payment_template() {
-    const paymentTemplateResource = createResource({
-      url: "praveg.api.fcrm.generate_whatsapp_payment_link_template",
-      params: {
-        doctype: "CRM Lead",
-        docname: doc.value?.name
-      },
-      auto: true,
-      onSuccess(data) {
-        doc.value.custom_payment_link_template = data?.template
+    document.generatePaymentTemplate.submit(null, {
+      onSuccess: (data) => {
         toast.success('Template generated')
       },
-      onError(err) {
-        toast.error(err?.messages?.[0] || "Failed to generate template")
-      }
+      onError: (err) => {
+        toast.error(err?.messages?.[0] || 'Failed to generate template')
+      },
     })
+
+    // const paymentTemplateResource = createResource({
+    //   url: "praveg.api.fcrm.generate_whatsapp_payment_link_template",
+    //   params: {
+    //     doctype: "CRM Lead",
+    //     docname: doc.value?.name
+    //   },
+    //   auto: true,
+    //   onSuccess(data) {
+    //     doc.value.custom_payment_link_template = data?.template
+    //     toast.success('Template generated')
+    //   },
+    //   onError(err) {
+    //     toast.error(err?.messages?.[0] || "Failed to generate template")
+    //   }
+    // })
   }
 
   async function send_whatsapp_payment() {
@@ -597,12 +672,37 @@ export function useCRMLead(doc) {
       return
     }
 
-    let url = "https://wa.me/" + doc.value.mobile_no + "?text=" + encodeURIComponent(doc.value.custom_payment_link_template);
+    const phone = String(doc.value.mobile_no || '').replace(/\D/g, '')
+    if (!phone) {
+      toast.error('Invalid phone number')
+      return
+    }
+
+    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_payment_link_template)}`
 
     window.open(url, "_blank");
   }
 
+  function room_rate_modify(row, action) {
+    // adjust this name if your field is different
+    const rate_modifier = toNumber(row.rate_modifier ?? 0)
+
+    const current_room_rate_per_night = toNumber(row.room_rate_per_night)
+
+    if (action === "plus") {
+      row.room_rate_per_night = current_room_rate_per_night + rate_modifier
+    } else {
+      row.room_rate_per_night = Math.max(0, current_room_rate_per_night - rate_modifier)
+    }
+
+    // recalc row totals and overall totals
+    calculateChildRow(row)
+  }
+
   const buttonHandlers = {
+    plus_rate: (row) => room_rate_modify(row, "plus"),
+    minus_rate: (row) => room_rate_modify(row, "minus"),
+    custom_generate_quotation: generate_quotation_pdf,
     custom_generate_template: generate_quotation_template,
     custom_share_on_whatsapp: send_whatsapp_quotation,
     custom_generate_template_payment: generate_payment_template,

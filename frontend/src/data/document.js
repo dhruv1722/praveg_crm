@@ -46,7 +46,17 @@ export function useDocument(doctype, docname, resourceOverrides = {}) {
             toast.success(__('Document updated successfully'))
           },
           onError: (err) => {
+            if (err && err.__document_save_error_handled) return
+            if (err) err.__document_save_error_handled = true
+
             triggerOnError(err)
+
+            if (err.exc_type === 'TimestampMismatchError') {
+              toast.warning(
+                __('This document was updated in the background. Refresh once and try again.'),
+              )
+              return
+            }
 
             if (err.exc_type == 'MandatoryError') {
               const fieldName = err.messages

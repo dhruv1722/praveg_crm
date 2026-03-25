@@ -164,6 +164,138 @@ def get_deal_activities(name: str):
 	return activities, calls, notes, tasks, attachments
 
 
+# def get_lead_activities(name: str):
+# 	get_docinfo("", "CRM Lead", name)
+# 	docinfo = frappe.response["docinfo"]
+# 	lead_meta = frappe.get_meta("CRM Lead")
+# 	lead_fields = {
+# 		field.fieldname: {"label": field.label, "options": field.options} for field in lead_meta.fields
+# 	}
+# 	avoid_fields = [
+# 		"converted",
+# 		"response_by",
+# 		"sla_creation",
+# 		"sla",
+# 		"first_response_time",
+# 		"first_responded_on",
+# 	]
+
+# 	doc = frappe.db.get_values("CRM Lead", name, ["creation", "owner"])[0]
+# 	activities = [
+# 		{
+# 			"activity_type": "creation",
+# 			"creation": doc[0],
+# 			"owner": doc[1],
+# 			"data": _("created this lead"),
+# 			"is_lead": True,
+# 		}
+# 	]
+
+# 	docinfo.versions.reverse()
+
+# 	for version in docinfo.versions:
+# 		data = json.loads(version.data)
+# 		if not data.get("changed"):
+# 			continue
+
+# 		if change := data.get("changed")[0]:
+# 			field = lead_fields.get(change[0], None)
+
+# 			if not field or change[0] in avoid_fields or (not change[1] and not change[2]):
+# 				continue
+
+# 			field_label = field.get("label") or change[0]
+# 			field_option = field.get("options") or None
+
+# 			activity_type = "changed"
+# 			data = {
+# 				"field": change[0],
+# 				"field_label": field_label,
+# 				"old_value": change[1],
+# 				"value": change[2],
+# 			}
+
+# 			if not change[1] and change[2]:
+# 				activity_type = "added"
+# 				data = {
+# 					"field": change[0],
+# 					"field_label": field_label,
+# 					"value": change[2],
+# 				}
+# 			elif change[1] and not change[2]:
+# 				activity_type = "removed"
+# 				data = {
+# 					"field": change[0],
+# 					"field_label": field_label,
+# 					"value": change[1],
+# 				}
+
+# 		activity = {
+# 			"activity_type": activity_type,
+# 			"creation": version.creation,
+# 			"owner": version.owner,
+# 			"data": data,
+# 			"is_lead": True,
+# 			"options": field_option,
+# 		}
+# 		activities.append(activity)
+
+# 	for comment in docinfo.comments:
+# 		activity = {
+# 			"name": comment.name,
+# 			"activity_type": "comment",
+# 			"creation": comment.creation,
+# 			"owner": comment.owner,
+# 			"content": comment.content,
+# 			"attachments": get_attachments("Comment", comment.name),
+# 			"is_lead": True,
+# 		}
+# 		activities.append(activity)
+
+# 	for communication in docinfo.communications + docinfo.automated_messages:
+# 		activity = {
+# 			"activity_type": "communication",
+# 			"communication_type": communication.communication_type,
+# 			"communication_date": communication.communication_date or communication.creation,
+# 			"creation": communication.creation,
+# 			"data": {
+# 				"subject": communication.subject,
+# 				"content": communication.content,
+# 				"sender_full_name": communication.sender_full_name,
+# 				"sender": communication.sender,
+# 				"recipients": communication.recipients,
+# 				"cc": communication.cc,
+# 				"bcc": communication.bcc,
+# 				"attachments": get_attachments("Communication", communication.name),
+# 				"read_by_recipient": communication.read_by_recipient,
+# 				"delivery_status": communication.delivery_status,
+# 			},
+# 			"is_lead": True,
+# 		}
+# 		activities.append(activity)
+
+# 	for attachment_log in docinfo.attachment_logs:
+# 		activity = {
+# 			"name": attachment_log.name,
+# 			"activity_type": "attachment_log",
+# 			"creation": attachment_log.creation,
+# 			"owner": attachment_log.owner,
+# 			"data": parse_attachment_log(attachment_log.content, attachment_log.comment_type),
+# 			"is_lead": True,
+# 		}
+# 		activities.append(activity)
+
+# 	calls = get_linked_calls(name).get("calls", [])
+# 	notes = get_linked_notes(name) + get_linked_calls(name).get("notes", [])
+# 	tasks = get_linked_tasks(name) + get_linked_calls(name).get("tasks", [])
+# 	attachments = get_attachments("CRM Lead", name)
+
+# 	activities.sort(key=lambda x: x["creation"], reverse=True)
+# 	activities = handle_multiple_versions(activities)
+
+# 	return activities, calls, notes, tasks, attachments
+
+
 def get_lead_activities(name: str):
 	get_docinfo("", "CRM Lead", name)
 	docinfo = frappe.response["docinfo"]
@@ -191,54 +323,168 @@ def get_lead_activities(name: str):
 		}
 	]
 
-	docinfo.versions.reverse()
+	def _make_change_activity(version, field, field_label, old_value, new_value, options=None):
+		if old_value in (None, "") and new_value in (None, ""):
+			return None
 
-	for version in docinfo.versions:
-		data = json.loads(version.data)
-		if not data.get("changed"):
-			continue
+		activity_type = "changed"
+		payload = {
+			"field": field,
+			"field_label": field_label,
+			"old_value": old_value,
+			"value": new_value,
+		}
 
-		if change := data.get("changed")[0]:
-			field = lead_fields.get(change[0], None)
-
-			if not field or change[0] in avoid_fields or (not change[1] and not change[2]):
-				continue
-
-			field_label = field.get("label") or change[0]
-			field_option = field.get("options") or None
-
-			activity_type = "changed"
-			data = {
-				"field": change[0],
+		if old_value in (None, "") and new_value not in (None, ""):
+			activity_type = "added"
+			payload = {
+				"field": field,
 				"field_label": field_label,
-				"old_value": change[1],
-				"value": change[2],
+				"value": new_value,
+			}
+		elif old_value not in (None, "") and new_value in (None, ""):
+			activity_type = "removed"
+			payload = {
+				"field": field,
+				"field_label": field_label,
+				"value": old_value,
 			}
 
-			if not change[1] and change[2]:
-				activity_type = "added"
-				data = {
-					"field": change[0],
-					"field_label": field_label,
-					"value": change[2],
-				}
-			elif change[1] and not change[2]:
-				activity_type = "removed"
-				data = {
-					"field": change[0],
-					"field_label": field_label,
-					"value": change[1],
-				}
-
-		activity = {
+		return {
 			"activity_type": activity_type,
 			"creation": version.creation,
 			"owner": version.owner,
-			"data": data,
+			"data": payload,
 			"is_lead": True,
-			"options": field_option,
+			"options": options,
 		}
-		activities.append(activity)
+
+	docinfo.versions.reverse()
+
+	for version in docinfo.versions:
+		try:
+			vdata = json.loads(version.data or "{}")
+		except Exception:
+			continue
+
+		# 1) Parent field changes (all changes, not just first)
+		for change in vdata.get("changed", []) or []:
+			if not isinstance(change, (list, tuple)) or len(change) < 3:
+				continue
+
+			fieldname, old_value, new_value = change[0], change[1], change[2]
+			field = lead_fields.get(fieldname)
+
+			if not field or fieldname in avoid_fields:
+				continue
+
+			activity = _make_change_activity(
+				version=version,
+				field=fieldname,
+				field_label=field.get("label") or fieldname,
+				old_value=old_value,
+				new_value=new_value,
+				options=field.get("options"),
+			)
+			if activity:
+				activities.append(activity)
+
+		# 2) Child table row field changes
+		for row_change in vdata.get("row_changed", []) or []:
+			if not isinstance(row_change, (list, tuple)) or len(row_change) < 4:
+				continue
+
+			table_field, row_index, _row_name, row_changes = (
+				row_change[0],
+				row_change[1],
+				row_change[2],
+				row_change[3],
+			)
+
+			table_df = lead_meta.get_field(table_field)
+			if not table_df or not table_df.options:
+				continue
+
+			child_meta = frappe.get_meta(table_df.options)
+			table_label = table_df.label or table_field
+			row_no = (row_index + 1) if isinstance(row_index, int) else row_index
+
+			for child_change in row_changes or []:
+				if not isinstance(child_change, (list, tuple)) or len(child_change) < 3:
+					continue
+
+				child_field, old_value, new_value = child_change[0], child_change[1], child_change[2]
+				child_df = child_meta.get_field(child_field)
+				child_label = (child_df.label if child_df else child_field) or child_field
+				label = f"{table_label} [{row_no}] - {child_label}"
+				options = child_df.options if child_df else None
+
+				activity = _make_change_activity(
+					version=version,
+					field=f"{table_field}.{child_field}",
+					field_label=label,
+					old_value=old_value,
+					new_value=new_value,
+					options=options,
+				)
+				if activity:
+					activities.append(activity)
+
+		# 3) Child table row added
+		for added in vdata.get("added", []) or []:
+			if not isinstance(added, (list, tuple)) or len(added) < 2:
+				continue
+
+			table_field, row = added[0], (added[1] or {})
+			table_df = lead_meta.get_field(table_field)
+			if not table_df:
+				continue
+
+			table_label = table_df.label or table_field
+			row_title = row.get("type") or row.get("name") or _("Row")
+
+			activities.append(
+				{
+					"activity_type": "added",
+					"creation": version.creation,
+					"owner": version.owner,
+					"data": {
+						"field": table_field,
+						"field_label": table_label,
+						"value": f"{row_title} added",
+					},
+					"is_lead": True,
+					"options": None,
+				}
+			)
+
+		# 4) Child table row removed
+		for removed in vdata.get("removed", []) or []:
+			if not isinstance(removed, (list, tuple)) or len(removed) < 2:
+				continue
+
+			table_field, row = removed[0], (removed[1] or {})
+			table_df = lead_meta.get_field(table_field)
+			if not table_df:
+				continue
+
+			table_label = table_df.label or table_field
+			row_title = row.get("type") or row.get("name") or _("Row")
+
+			activities.append(
+				{
+					"activity_type": "removed",
+					"creation": version.creation,
+					"owner": version.owner,
+					"data": {
+						"field": table_field,
+						"field_label": table_label,
+						"value": f"{row_title} removed",
+					},
+					"is_lead": True,
+					"options": None,
+				}
+			)
 
 	for comment in docinfo.comments:
 		activity = {
@@ -294,6 +540,8 @@ def get_lead_activities(name: str):
 	activities = handle_multiple_versions(activities)
 
 	return activities, calls, notes, tasks, attachments
+
+
 
 
 def get_attachments(doctype: str, name: str):

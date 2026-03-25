@@ -18,6 +18,37 @@
       class="ai-html text-ink-gray-2"
       v-html="data[field.fieldname] || ''"
     ></div>
+
+    <div 
+      v-else-if="['Attach', 'Attach Image'].includes(field.fieldtype)"> 
+      <div v-if="data[field.fieldname]"> 
+        <AttachmentItem 
+          :label="getAttachLabel(data[field.fieldname])" 
+          :url="data[field.fieldname]" > 
+          <template #suffix> 
+            <Button icon="x" 
+              variant="ghost" 
+              @click.stop="() => fieldChange('', field)" /> 
+          </template> 
+        </AttachmentItem> 
+      </div>
+      <FileUploader
+        :upload-args="{
+          doctype: doctype,
+          docname: isGridRow && parentDoc ? parentDoc.name : data.value?.name,
+          private: true
+        }"
+        @success="(file) => fieldChange(file.file_url, field)">
+        <template #default="{ openFileSelector }">
+          <Button
+            variant="ghost"
+            :label="data[field.fieldname] ? __('Replace') : __('Attach')"
+            @click="openFileSelector()"
+          />
+        </template>
+      </FileUploader>
+    </div>
+
     <!-- custom code -->
 
     <FormControl
@@ -123,7 +154,7 @@
 
     <Link
       v-else-if="field.fieldtype === 'User'"
-      class="form-control"
+      class="form-control text-ink-gray-5"
       :value="data[field.fieldname] && getUser(data[field.fieldname]).full_name"
       :doctype="field.options"
       :filters="field.filters"
@@ -144,7 +175,7 @@
       </template>
       <template #item-label="{ option }">
         <Tooltip :text="option.value">
-          <div class="cursor-pointer">
+          <div class="cursor-pointer text-ink-gray-9">
             {{ getUser(option.value).full_name }}
           </div>
         </Tooltip>
@@ -256,13 +287,14 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import TableMultiselectInput from '@/components/Controls/TableMultiselectInput.vue'
 import Link from '@/components/Controls/Link.vue'
 import Grid from '@/components/Controls/Grid.vue'
+import AttachmentItem from '@/components/AttachmentItem.vue'
 import { createDocument } from '@/composables/document'
 import { getFormat, evaluateDependsOnValue } from '@/utils'
 import { flt } from '@/utils/numberFormat.js'
 import { getMeta } from '@/stores/meta'
 import { usersStore } from '@/stores/users'
 import { useDocument } from '@/data/document'
-import { Combobox, Tooltip, DatePicker, DateTimePicker , TimePicker } from 'frappe-ui'
+import { Combobox, Tooltip, DatePicker, DateTimePicker , TimePicker, FileUploader } from 'frappe-ui'
 import { computed, provide, inject } from 'vue'
 
 const props = defineProps({
@@ -419,9 +451,22 @@ function fieldChange(value, df) {
 function handleButtonClick(df) {
   const handler = fieldButtonHandlers?.[df.fieldname]
   if (typeof handler === 'function') {
-    return handler()
+    // If this field is rendered inside a grid row, pass the row object (data.value)
+    if (isGridRow) {
+      return handler(data.value, df)
+    }
+    // Non-grid fields: call handler with df (or no args) depending on handler implementation
+    return handler(df)
   }
   return fieldChange(data.value?.[df.fieldname], df)
+}
+// custom code
+
+// custom code
+function getAttachLabel(value) {
+  if (!value) return ''
+  const fileName = value.split('/').pop() || value
+  return decodeURIComponent(fileName)
 }
 // custom code
 

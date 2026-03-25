@@ -129,10 +129,11 @@ async function createNewLead() {
           return formError
         }
 
-        if (!lead.doc.first_name) {
-          error.value = __('First name is mandatory')
-          return error.value
-        }
+        // if (!lead.doc.first_name) {
+        //   error.value = __('First name is mandatory')
+        //   return error.value
+        // }
+
         if (lead.doc.annual_revenue) {
           if (typeof lead.doc.annual_revenue === 'string') {
             lead.doc.annual_revenue = lead.doc.annual_revenue.replace(/,/g, '')

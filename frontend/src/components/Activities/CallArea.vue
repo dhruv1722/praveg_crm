@@ -6,13 +6,25 @@
           size="md" />
 
         <span class="font-medium text-ink-gray-8 ml-1">
-          {{ activity?._caller?.label?.trim() || __('Unknown') }}
+          {{
+            (activity?._caller?.label?.trim()?.toLowerCase() !== 'unknown' &&
+              activity?._caller?.label?.trim()) ||
+            activity?.from?.trim?.() ||
+            activity?.caller?.trim?.() ||
+          ''
+          }}
         </span>
+
         <span>{{
           activity.type == 'Incoming'
-            ? __('has reached out')
-            : __('has made a call')
+            ? __('has reached out to')
+            : __('has made a call to')
         }}</span>
+
+        <span class="font-medium text-ink-gray-8 ml-1" :title="receiverLabel">
+          {{ receiverLabel }}
+        </span>
+
       </div>
       <div class="ml-auto whitespace-nowrap">
         <Tooltip :text="formatDate(activity.creation)">
@@ -89,10 +101,27 @@ import CallLogModal from '@/components/Modals/CallLogModal.vue'
 import { statusLabelMap, statusColorMap } from '@/utils/callLog.js'
 import { formatDate, timeAgo } from '@/utils'
 import { Avatar, Badge, Tooltip, createResource } from 'frappe-ui'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   activity: Object,
+})
+
+const receiverLabel = computed(() => {
+  const a = props.activity || {}
+  const parsed = a?._receiver?.label?.trim?.()
+  if (parsed && parsed.toLowerCase() !== 'unknown') return parsed
+
+  if (a.type === 'Incoming') {
+    return a?.receiver?.trim?.() || a?.to?.trim?.() || __('Unknown')
+  }
+
+  return (
+    a?._display_name?.trim?.() ||
+    a?.reference_docname?.trim?.() ||
+    a?.to?.trim?.() ||
+    __('Unknown')
+  )
 })
 
 const callLog = createResource({

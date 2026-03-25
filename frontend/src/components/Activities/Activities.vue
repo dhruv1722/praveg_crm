@@ -1,63 +1,38 @@
 <template>
-  <ActivityHeader
-    v-model="tabIndex"
-    v-model:showWhatsappTemplates="showWhatsappTemplates"
-    v-model:showFilesUploader="showFilesUploader"
-    :tabs="tabs"
-    :title="title"
-    :doc="doc"
-    :emailBox="emailBox"
-    :whatsappBox="whatsappBox"
-    :modalRef="modalRef"
-  />
+  <ActivityHeader v-model="tabIndex" v-model:showWhatsappTemplates="showWhatsappTemplates"
+    v-model:showFilesUploader="showFilesUploader" :tabs="tabs" :title="title" :doc="doc" :emailBox="emailBox"
+    :whatsappBox="whatsappBox" :modalRef="modalRef" />
   <FadedScrollableDiv class="flex flex-col h-full overflow-y-auto">
-    <div
-      v-if="all_activities?.loading"
-      class="flex flex-1 flex-col items-center justify-center gap-3 text-xl font-medium text-ink-gray-4"
-    >
+    <div v-if="all_activities?.loading"
+      class="flex flex-1 flex-col items-center justify-center gap-3 text-xl font-medium text-ink-gray-4">
       <LoadingIndicator class="h-6 w-6" />
       <span>{{ __('Loading...') }}</span>
     </div>
     <div v-else-if="title == 'Events'" class="h-full activity">
       <EventArea :doctype="doctype" :docname="docname" />
     </div>
-    <div
-      v-else-if="
-        activities?.length ||
-        (whatsappMessages.data?.length && title == 'WhatsApp')
-      "
-      class="activities"
-    >
+    <div v-else-if="
+      activities?.length ||
+      (whatsappMessages.data?.length && title == 'WhatsApp')
+    " class="activities">
       <div v-if="title == 'WhatsApp' && whatsappMessages.data?.length">
-        <WhatsAppArea
-          class="px-3 sm:px-10"
-          v-model="whatsappMessages"
-          v-model:reply="replyMessage"
-          :messages="whatsappMessages.data"
-        />
+        <WhatsAppArea class="px-3 sm:px-10" v-model="whatsappMessages" v-model:reply="replyMessage"
+          :messages="whatsappMessages.data" />
       </div>
-      <div
-        v-else-if="title == 'Notes'"
-        class="grid grid-cols-1 gap-4 px-3 pb-3 sm:px-10 sm:pb-5 lg:grid-cols-2 xl:grid-cols-3"
-      >
+      <div v-else-if="title == 'Notes'"
+        class="grid grid-cols-1 gap-4 px-3 pb-3 sm:px-10 sm:pb-5 lg:grid-cols-2 xl:grid-cols-3">
         <div v-for="note in activities" @click="modalRef.showNote(note)">
           <NoteArea :note="note" v-model="all_activities" />
         </div>
       </div>
       <div v-else-if="title == 'Comments'" class="pb-5">
         <div v-for="(comment, i) in activities">
-          <div
-            class="activity grid grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-3 sm:gap-4 sm:px-10"
-          >
+          <div class="activity grid grid-cols-[30px_minmax(auto,_1fr)] gap-2 px-3 sm:gap-4 sm:px-10">
             <div
               class="z-0 relative flex justify-center before:absolute before:left-[50%] before:-z-[1] before:top-0 before:border-l before:border-outline-gray-modals"
-              :class="
-                i != activities.length - 1 ? 'before:h-full' : 'before:h-4'
-              "
-            >
-              <div
-                class="flex h-8 w-7 items-center justify-center bg-surface-white"
-              >
+              :class="i != activities.length - 1 ? 'before:h-full' : 'before:h-4'
+                ">
+              <div class="flex h-8 w-7 items-center justify-center bg-surface-white">
                 <CommentIcon class="text-ink-gray-8" />
               </div>
             </div>
@@ -70,142 +45,78 @@
       </div>
       <div v-else-if="title == 'Calls'" class="activity">
         <div v-for="(call, i) in activities">
-          <div
-            class="activity grid grid-cols-[30px_minmax(auto,_1fr)] gap-4 px-3 sm:px-10"
-          >
+          <div class="activity grid grid-cols-[30px_minmax(auto,_1fr)] gap-4 px-3 sm:px-10">
             <div
               class="z-0 relative flex justify-center before:absolute before:left-[50%] before:-z-[1] before:top-0 before:border-l before:border-outline-gray-modals"
-              :class="
-                i != activities.length - 1 ? 'before:h-full' : 'before:h-4'
-              "
-            >
-              <div
-                class="flex h-8 w-7 items-center justify-center bg-surface-white text-ink-gray-8"
-              >
-                <MissedCallIcon
-                  v-if="call.status == 'No Answer'"
-                  class="text-ink-red-4"
-                />
+              :class="i != activities.length - 1 ? 'before:h-full' : 'before:h-4'
+                ">
+              <div class="flex h-8 w-7 items-center justify-center bg-surface-white text-ink-gray-8">
+                <MissedCallIcon v-if="call.status == 'No Answer'" class="text-ink-red-4" />
                 <DeclinedCallIcon v-else-if="call.status == 'Busy'" />
-                <component
-                  v-else
-                  :is="
-                    call.type == 'Incoming' ? InboundCallIcon : OutboundCallIcon
-                  "
-                />
+                <component v-else :is="call.type == 'Incoming' ? InboundCallIcon : OutboundCallIcon
+                  " />
               </div>
             </div>
             <CallArea class="mb-4" :activity="call" />
           </div>
         </div>
       </div>
-      <div
-        v-else-if="title == 'Attachments'"
-        class="px-3 pb-3 sm:px-10 sm:pb-5"
-      >
-        <AttachmentArea
-          :attachments="activities"
-          @reload="all_activities.reload() && scroll()"
-        />
+      <div v-else-if="title == 'Attachments'" class="px-3 pb-3 sm:px-10 sm:pb-5">
+        <AttachmentArea :attachments="activities" @reload="all_activities.reload() && scroll()" />
       </div>
-      <div
-        v-else
-        v-for="(activity, i) in activities"
-        class="activity px-3 sm:px-10"
-        :class="
-          ['Activity', 'Emails'].includes(title)
-            ? 'grid grid-cols-[30px_minmax(auto,_1fr)] gap-2 sm:gap-4'
-            : ''
-        "
-      >
-        <div
-          v-if="['Activity', 'Emails'].includes(title)"
+      <div v-else v-for="(activity, i) in activities" class="activity px-3 sm:px-10" :class="['Activity', 'Emails'].includes(title)
+        ? 'grid grid-cols-[30px_minmax(auto,_1fr)] gap-2 sm:gap-4'
+        : ''
+        ">
+        <div v-if="['Activity', 'Emails'].includes(title)"
           class="z-0 relative flex justify-center before:absolute before:left-[50%] before:-z-[1] before:top-0 before:border-l before:border-outline-gray-modals"
-          :class="[i != activities.length - 1 ? 'before:h-full' : 'before:h-4']"
-        >
-          <div
-            class="flex h-7 w-7 items-center justify-center bg-surface-white"
-            :class="{
-              'mt-2.5': ['communication'].includes(activity.activity_type),
-              'bg-surface-white': ['added', 'removed', 'changed'].includes(
+          :class="[i != activities.length - 1 ? 'before:h-full' : 'before:h-4']">
+          <div class="flex h-7 w-7 items-center justify-center bg-surface-white" :class="{
+            'mt-2.5': ['communication'].includes(activity.activity_type),
+            'bg-surface-white': ['added', 'removed', 'changed'].includes(
+              activity.activity_type,
+            ),
+            'h-8': [
+              'comment',
+              'communication',
+              'incoming_call',
+              'outgoing_call',
+            ].includes(activity.activity_type),
+          }">
+            <UserAvatar v-if="activity.activity_type == 'communication'" :user="activity.data.sender" size="md" />
+            <MissedCallIcon v-else-if="
+              ['incoming_call', 'outgoing_call'].includes(
                 activity.activity_type,
-              ),
-              'h-8': [
-                'comment',
-                'communication',
-                'incoming_call',
-                'outgoing_call',
-              ].includes(activity.activity_type),
-            }"
-          >
-            <UserAvatar
-              v-if="activity.activity_type == 'communication'"
-              :user="activity.data.sender"
-              size="md"
-            />
-            <MissedCallIcon
-              v-else-if="
-                ['incoming_call', 'outgoing_call'].includes(
-                  activity.activity_type,
-                ) && activity.status == 'No Answer'
-              "
-              class="text-ink-red-4"
-            />
-            <DeclinedCallIcon
-              v-else-if="
-                ['incoming_call', 'outgoing_call'].includes(
-                  activity.activity_type,
-                ) && activity.status == 'Busy'
-              "
-            />
-            <component
-              v-else
-              :is="activity.icon"
-              :class="
-                ['added', 'removed', 'changed'].includes(activity.activity_type)
-                  ? 'text-ink-gray-4'
-                  : 'text-ink-gray-8'
-              "
-            />
+              ) && activity.status == 'No Answer'
+            " class="text-ink-red-4" />
+            <DeclinedCallIcon v-else-if="
+              ['incoming_call', 'outgoing_call'].includes(
+                activity.activity_type,
+              ) && activity.status == 'Busy'
+            " />
+            <component v-else :is="activity.icon" :class="['added', 'removed', 'changed'].includes(activity.activity_type)
+              ? 'text-ink-gray-4'
+              : 'text-ink-gray-8'
+              " />
           </div>
         </div>
-        <div
-          v-if="activity.activity_type == 'communication'"
-          class="pb-5 mt-px"
-        >
+        <div v-if="activity.activity_type == 'communication'" class="pb-5 mt-px">
           <EmailArea :activity="activity" :emailBox="emailBox" />
         </div>
-        <div
-          class="mb-4"
-          :id="activity.name"
-          v-else-if="activity.activity_type == 'comment'"
-        >
+        <div class="mb-4" :id="activity.name" v-else-if="activity.activity_type == 'comment'">
           <CommentArea :activity="activity" />
         </div>
-        <div
-          class="mb-4 flex flex-col gap-2 py-1.5"
-          :id="activity.name"
-          v-else-if="activity.activity_type == 'attachment_log'"
-        >
+        <div class="mb-4 flex flex-col gap-2 py-1.5" :id="activity.name"
+          v-else-if="activity.activity_type == 'attachment_log'">
           <div class="flex items-center justify-stretch gap-2 text-base">
-            <div
-              class="inline-flex items-center flex-wrap gap-1.5 text-ink-gray-8 font-medium"
-            >
+            <div class="inline-flex items-center flex-wrap gap-1.5 text-ink-gray-8 font-medium">
               <span class="font-medium">{{ activity.owner_name }}</span>
               <span class="text-ink-gray-5">{{ __(activity.data.type) }}</span>
-              <a
-                v-if="activity.data.file_url"
-                :href="activity.data.file_url"
-                target="_blank"
-              >
+              <a v-if="activity.data.file_url" :href="activity.data.file_url" target="_blank">
                 <span>{{ activity.data.file_name }}</span>
               </a>
               <span v-else>{{ activity.data.file_name }}</span>
-              <FeatherIcon
-                v-if="activity.data.is_private"
-                name="lock"
-                class="size-3"
-              />
+              <FeatherIcon v-if="activity.data.is_private" name="lock" class="size-3" />
             </div>
             <div class="ml-auto whitespace-nowrap">
               <Tooltip :text="formatDate(activity.creation)">
@@ -216,55 +127,33 @@
             </div>
           </div>
         </div>
-        <div
-          v-else-if="
-            activity.activity_type == 'incoming_call' ||
-            activity.activity_type == 'outgoing_call'
-          "
-          class="mb-4"
-        >
+        <div v-else-if="
+          activity.activity_type == 'incoming_call' ||
+          activity.activity_type == 'outgoing_call'
+        " class="mb-4">
           <CallArea :activity="activity" />
         </div>
         <div v-else class="mb-4 flex flex-col gap-2 py-1.5">
           <div class="flex items-center justify-stretch gap-2 text-base">
-            <div
-              v-if="activity.other_versions"
-              class="inline-flex flex-wrap gap-1.5 text-ink-gray-8 font-medium"
-            >
+            <div v-if="activity.other_versions" class="inline-flex flex-wrap gap-1.5 text-ink-gray-8 font-medium">
               <span>{{ activity.show_others ? __('Hide') : __('Show') }}</span>
               <span> +{{ activity.other_versions.length + 1 }} </span>
               <span>{{ __('changes from') }}</span>
               <span>{{ activity.owner_name }}</span>
-              <Button
-                class="!size-4"
-                variant="ghost"
-                :icon="SelectIcon"
-                @click="activity.show_others = !activity.show_others"
-              />
+              <Button class="!size-4" variant="ghost" :icon="SelectIcon"
+                @click="activity.show_others = !activity.show_others" />
             </div>
-            <div
-              v-else
-              class="inline-flex items-center flex-wrap gap-1 text-ink-gray-5"
-            >
+            <div v-else class="inline-flex items-center flex-wrap gap-1 text-ink-gray-5">
               <span class="font-medium text-ink-gray-8">
                 {{ activity.owner_name }}
               </span>
               <span v-if="activity.type">{{ __(activity.type) }}</span>
-              <span
-                v-if="activity.data?.field_label"
-                class="max-w-xs truncate font-medium text-ink-gray-8"
-              >
+              <span v-if="activity.data?.field_label" class="max-w-xs truncate font-medium text-ink-gray-8">
                 {{ __(activity.data.field_label) }}
               </span>
               <span v-if="activity.value">{{ __(activity.value) }}</span>
-              <span
-                v-if="activity.data?.old_value"
-                class="max-w-xs font-medium text-ink-gray-8"
-              >
-                <div
-                  class="flex items-center gap-1"
-                  v-if="activity.options == 'User'"
-                >
+              <span v-if="activity.data?.old_value" class="max-w-xs font-medium text-ink-gray-8">
+                <div class="flex items-center gap-1" v-if="activity.options == 'User'">
                   <UserAvatar :user="activity.data.old_value" size="xs" />
                   {{ getUser(activity.data.old_value).full_name }}
                 </div>
@@ -273,14 +162,8 @@
                 </div>
               </span>
               <span v-if="activity.to">{{ __('to') }}</span>
-              <span
-                v-if="activity.data?.value"
-                class="max-w-xs font-medium text-ink-gray-8"
-              >
-                <div
-                  class="flex items-center gap-1"
-                  v-if="activity.options == 'User'"
-                >
+              <span v-if="activity.data?.value" class="max-w-xs font-medium text-ink-gray-8">
+                <div class="flex items-center gap-1" v-if="activity.options == 'User'">
                   <UserAvatar :user="activity.data.value" size="xs" />
                   {{ getUser(activity.data.value).full_name }}
                 </div>
@@ -298,39 +181,21 @@
               </Tooltip>
             </div>
           </div>
-          <div
-            v-if="activity.other_versions && activity.show_others"
-            class="flex flex-col gap-0.5"
-          >
-            <div
-              v-for="activity in sortByCreation([
-                activity,
-                ...activity.other_versions,
-              ])"
-              class="flex items-start justify-stretch gap-2 py-1.5 text-base"
-            >
+          <div v-if="activity.other_versions && activity.show_others" class="flex flex-col gap-0.5">
+            <div v-for="activity in sortByCreation([
+              activity,
+              ...activity.other_versions,
+            ])" class="flex items-start justify-stretch gap-2 py-1.5 text-base">
               <div class="inline-flex flex-wrap gap-1 text-ink-gray-5">
-                <span
-                  v-if="activity.data?.field_label"
-                  class="max-w-xs truncate text-ink-gray-5"
-                >
+                <span v-if="activity.data?.field_label" class="max-w-xs truncate text-ink-gray-5">
                   {{ __(activity.data.field_label) }}
                 </span>
-                <FeatherIcon
-                  name="arrow-right"
-                  class="mx-1 h-4 w-4 text-ink-gray-5"
-                />
+                <FeatherIcon name="arrow-right" class="mx-1 h-4 w-4 text-ink-gray-5" />
                 <span v-if="activity.type">
                   {{ startCase(__(activity.type)) }}
                 </span>
-                <span
-                  v-if="activity.data?.old_value"
-                  class="max-w-xs font-medium text-ink-gray-8"
-                >
-                  <div
-                    class="flex items-center gap-1"
-                    v-if="activity.options == 'User'"
-                  >
+                <span v-if="activity.data?.old_value" class="max-w-xs font-medium text-ink-gray-8">
+                  <div class="flex items-center gap-1" v-if="activity.options == 'User'">
                     <UserAvatar :user="activity.data.old_value" size="xs" />
                     {{ getUser(activity.data.old_value).full_name }}
                   </div>
@@ -339,14 +204,8 @@
                   </div>
                 </span>
                 <span v-if="activity.to">{{ __('to') }}</span>
-                <span
-                  v-if="activity.data?.value"
-                  class="max-w-xs font-medium text-ink-gray-8"
-                >
-                  <div
-                    class="flex items-center gap-1"
-                    v-if="activity.options == 'User'"
-                  >
+                <span v-if="activity.data?.value" class="max-w-xs font-medium text-ink-gray-8">
+                  <div class="flex items-center gap-1" v-if="activity.options == 'User'">
                     <UserAvatar :user="activity.data.value" size="xs" />
                     {{ getUser(activity.data.value).full_name }}
                   </div>
@@ -369,63 +228,32 @@
       </div>
     </div>
     <div v-else-if="title == 'Data'" class="h-full flex flex-col px-3 sm:px-10">
-      <DataFields
-        :doctype="doctype"
-        :docname="docname"
-        @beforeSave="(data) => emit('beforeSave', data)"
-        @afterSave="(data) => emit('afterSave', data)"
-      />
+      <DataFields :doctype="doctype" :docname="docname" @beforeSave="(data) => emit('beforeSave', data)"
+        @afterSave="(data) => emit('afterSave', data)" />
     </div>
-    <EmptyState
-      v-else
-      :title="emptyText"
-      :description="emptyTextDescription"
-      :icon="emptyTextIcon"
-      :top="top"
-    />
+    <!-- custom code -->
+    <div v-else-if="title == 'Payment'" class="h-full flex flex-col px-3 sm:px-10">
+      <PaymentFields :doctype="doctype" :docname="docname" @beforeSave="(data) => emit('beforeSave', data)"
+        @afterSave="(data) => emit('afterSave', data)" />
+    </div>
+    <!-- custom code -->
+    <EmptyState v-else :title="emptyText" :description="emptyTextDescription" :icon="emptyTextIcon" :top="top" />
   </FadedScrollableDiv>
   <div>
-    <CommunicationArea
-      ref="emailBox"
-      v-if="['Emails', 'Comments', 'Activity'].includes(title)"
-      v-model="doc"
-      v-model:reload="reload_email"
-      :doctype="doctype"
-      @scroll="scroll"
-    />
-    <WhatsAppBox
-      ref="whatsappBox"
-      v-if="title == 'WhatsApp'"
-      v-model="doc"
-      v-model:reply="replyMessage"
-      v-model:whatsapp="whatsappMessages"
-      :doctype="doctype"
-      @scroll="scroll"
-    />
+    <CommunicationArea ref="emailBox" v-if="['Emails', 'Comments', 'Activity'].includes(title)" v-model="doc"
+      v-model:reload="reload_email" :doctype="doctype" @scroll="scroll" />
+    <WhatsAppBox ref="whatsappBox" v-if="title == 'WhatsApp'" v-model="doc" v-model:reply="replyMessage"
+      v-model:whatsapp="whatsappMessages" :doctype="doctype" @scroll="scroll" />
   </div>
-  <WhatsappTemplateSelectorModal
-    v-if="whatsappEnabled"
-    v-model="showWhatsappTemplates"
-    :doctype="doctype"
-    @send="(t) => sendTemplate(t)"
-  />
-  <AllModals
-    ref="modalRef"
-    v-model="all_activities"
-    :doctype="doctype"
-    :doc="doc"
-  />
-  <FilesUploader
-    v-model="showFilesUploader"
-    :doctype="doctype"
-    :docname="docname"
-    @after="
-      () => {
-        all_activities.reload()
-        changeTabTo('attachments')
-      }
-    "
-  />
+  <WhatsappTemplateSelectorModal v-if="whatsappEnabled" v-model="showWhatsappTemplates" :doctype="doctype"
+    @send="(t) => sendTemplate(t)" />
+  <AllModals ref="modalRef" v-model="all_activities" :doctype="doctype" :doc="doc" />
+  <FilesUploader v-model="showFilesUploader" :doctype="doctype" :docname="docname" @after="
+    () => {
+      all_activities.reload()
+      changeTabTo('attachments')
+    }
+  " />
 </template>
 <script setup>
 import ActivityHeader from '@/components/Activities/ActivityHeader.vue'
@@ -446,6 +274,10 @@ import NoteIcon from '@/components/Icons/NoteIcon.vue'
 import TaskIcon from '@/components/Icons/TaskIcon.vue'
 import AttachmentIcon from '@/components/Icons/AttachmentIcon.vue'
 import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
+
+// custom code
+import PaymentFields from '@/components/Activities/PaymentFields.vue'
+// custom code
 import EventArea from '@/components/Activities/EventArea.vue'
 import WhatsAppArea from '@/components/Activities/WhatsAppArea.vue'
 import WhatsAppBox from '@/components/Activities/WhatsAppBox.vue'
@@ -654,11 +486,19 @@ const activities = computed(() => {
   return sortByCreation(_activities)
 })
 
+
+
 function sortByCreation(list) {
-  return list.sort((a, b) => new Date(a.creation) - new Date(b.creation))
+  // return list.sort((a, b) => new Date(a.creation) - new Date(b.creation))
+  // custom code
+  return list.sort((a, b) => new Date(b.creation) - new Date(a.creation))
+  // custom code
 }
 function sortByModified(list) {
-  return list.sort((b, a) => new Date(a.modified) - new Date(b.modified))
+  // return list.sort((b, a) => new Date(a.modified) - new Date(b.modified))
+  // custom code
+  return list.sort((a, b) => new Date(b.modified) - new Date(a.modified))
+  // custom code
 }
 
 function update_activities_details(activity) {
@@ -802,22 +642,29 @@ watch([reload, reload_email], ([reload_value, reload_email_value]) => {
   }
 })
 
-function scroll(hash) {
-  if (['tasks', 'notes', 'events'].includes(route.hash?.slice(1))) return
-  setTimeout(() => {
-    let el
-    if (!hash) {
-      let e = document.getElementsByClassName('activity')
-      el = e[e.length - 1]
-    } else {
-      el = document.getElementById(hash)
-    }
-    if (el && !useElementVisibility(el).value) {
-      el.scrollIntoView({ behavior: 'smooth' })
-      el.focus()
-    }
-  }, 500)
+
+// custom code
+function scroll() {
+  return
 }
+// custom code
+
+// function scroll(hash) {
+//   if (['tasks', 'notes', 'events'].includes(route.hash?.slice(1))) return
+//   setTimeout(() => {
+//     let el
+//     if (!hash) {
+//       let e = document.getElementsByClassName('activity')
+//       el = e[e.length - 1]
+//     } else {
+//       el = document.getElementById(hash)
+//     }
+//     if (el && !useElementVisibility(el).value) {
+//       el.scrollIntoView({ behavior: 'smooth' })
+//       el.focus()
+//     }
+//   }, 500)
+// }
 
 defineExpose({ emailBox, all_activities, changeTabTo })
 </script>

@@ -24,6 +24,13 @@ const routes = [
     name: 'Leads',
     component: () => import('@/pages/Leads.vue'),
   },
+  // custom code
+  {
+    path: '/follow-up',
+    name: 'Follow Up',
+    component: () => import('@/pages/FollowUp.vue'),
+  },
+  // custom code
   {
     path: '/leads/:leadId',
     name: 'Lead',

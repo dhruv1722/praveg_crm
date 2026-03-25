@@ -56,6 +56,21 @@
               </div>
               <div class="grid w-full h-9.5" :style="{ gridTemplateColumns: gridTemplateColumns }">
                 <div class="border-r border-outline-gray-modals h-full" v-for="field in fields" :key="field.fieldname">
+
+                  <!-- custom code -->
+                  <a
+                    v-if="['Attach', 'Attach Image'].includes(field.fieldtype) && row[field.fieldname]"
+                    :href="row[field.fieldname]"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex h-full items-center px-2 text-sm text-blue-600 underline truncate"
+                    :title="row[field.fieldname]"
+                    @click.stop
+                  >
+                    {{ getAttachLabel(row[field.fieldname]) }}
+                  </a>
+                  <!-- custom code -->
+
                   <FormControl v-if="
                     field.read_only &&
                     ![
@@ -73,7 +88,7 @@
                         : row[field.options]
                       " :filters="field.filters" :row="row" @change="(v) => fieldChange(v, field, row)" :onCreate="(value, close) => field.create(v, field, row, close)
                       " />
-                  <Link v-else-if="field.fieldtype === 'User'" class="form-control"
+                  <Link v-else-if="field.fieldtype === 'User'" class="form-control  text-ink-gray-5"
                     :value="getUser(row[field.fieldname]).full_name" :doctype="field.options" :filters="field.filters"
                     @change="(v) => fieldChange(v, field, row)" :placeholder="field.placeholder" :hideMe="true">
                     <template #prefix>
@@ -84,7 +99,7 @@
                     </template>
                     <template #item-label="{ option }">
                       <Tooltip :text="option.value">
-                        <div class="cursor-pointer">
+                        <div class="cursor-pointer text-ink-gray-9">
                           {{ getUser(option.value).full_name }}
                         </div>
                       </Tooltip>
@@ -98,6 +113,7 @@
                   </div>
                   <DatePicker v-else-if="field.fieldtype === 'Date'" :value="row[field.fieldname]" icon-left=""
                     variant="outline" :formatter="(date) => getFormat(date, '', true)"
+                    :format="field.date_format || 'DD-MM-YYYY'"
                     input-class="border-none text-sm text-ink-gray-8" @change="(v) => fieldChange(v, field, row)" />
                   <DateTimePicker v-else-if="field.fieldtype === 'Datetime'" :value="row[field.fieldname]" icon-left=""
                     variant="outline" :formatter="(date) => getFormat(date, '', true, true)"
@@ -190,6 +206,9 @@ import {
 } from 'frappe-ui'
 import Draggable from 'vuedraggable'
 import { ref, reactive, computed, inject, provide } from 'vue'
+// custom code
+import { sessionStore } from '@/stores/session'
+// custom codes
 
 const props = defineProps({
   label: {
@@ -387,6 +406,14 @@ function fieldChange(value, field, row) {
 }
 
 function getDefaultValue(defaultValue, fieldtype) {
+  // custom code
+  const session = sessionStore()
+
+  if (defaultValue === '__user') {
+    return session.user
+  }
+  // custom code
+
   if (['Float', 'Currency', 'Percent'].includes(fieldtype)) {
     return flt(defaultValue)
   } else if (fieldtype === 'Check') {
@@ -428,6 +455,14 @@ const getOptions = (options) => {
     return []
   }
 }
+
+// custom code
+function getAttachLabel(value) {
+  if (!value) return ''
+  const fileName = value.split('/').pop() || value
+  return decodeURIComponent(fileName)
+}
+// custom code
 </script>
 
 <style scoped>

@@ -80,7 +80,7 @@
                 <Button :tooltip="__('Make a call')" :icon="PhoneIcon" :loading="isCallInProgress"
                   @click="makeSmartFlowCall" />
 
-                <Button :tooltip="__('Generate Quotation')" :icon="DocumentIcon" @click="generateQuotation()" />
+                <Button :tooltip="__('Preview Quotation')" :icon="DocumentIcon" @click="previewQuotation()" />
 
                 <Button :tooltip="__('Send a message')" :icon="WhatsAppIcon" @click="openWhatsApp" />
 
@@ -176,7 +176,7 @@ import {
   usePageMeta,
   toast,
 } from 'frappe-ui'
-import { ref, computed, watch, nextTick, onMounted , provide } from 'vue'
+import { ref, computed, watch, nextTick, onMounted, provide } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useActiveTabManager } from '@/composables/useActiveTabManager'
 import { useSmartflowCallStore } from "@/stores/smartflow"
@@ -206,7 +206,20 @@ const showConvertToDealModal = ref(false)
 const showFilesUploader = ref(false)
 
 const { triggerOnChange, assignees, permissions, document, scripts, error } =
-  useDocument('CRM Lead', props.leadId)
+  useDocument('CRM Lead', props.leadId, {
+    whitelistedMethods: {
+      generateQuotationVersion: {
+        method: 'generate_quotation_version',
+      },
+      generateQuotationTemplate: {
+        method: 'generate_whatsapp_quotation_template',
+      },
+      generatePaymentTemplate: {
+        method: 'generate_whatsapp_payment_link_template',
+      }
+    },
+  })
+
 
 const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
@@ -274,10 +287,6 @@ async function openWhatsApp() {
   const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
 
   window.open(url, '_blank')
-}
-
-function generateQuotation() {
-  window.open(`/api/method/praveg.api.fcrm.generate_lead_pdf?lead=${props.leadId}`, '_blank')
 }
 
 watch(error, (err) => {
@@ -505,7 +514,15 @@ function reloadAssignees(data) {
   }
 }
 
+function previewQuotation() {
+  window.open(
+    `/api/method/praveg.api.pdf.preview_quotation_pdf?doctype=CRM Lead&name=${props.leadId}`,
+    '_blank'
+  )
+}
+
 onMounted(() => {
   crmLeadScript.setupWatchers()
 })
+
 </script>
