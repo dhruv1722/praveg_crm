@@ -71,7 +71,7 @@
                   </a>
                   <!-- custom code -->
 
-                  <FormControl v-if="
+                  <FormControl v-else-if="
                     field.read_only &&
                     ![
                       'Int',
