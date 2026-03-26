@@ -195,6 +195,7 @@ import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import LinkIcon from '@/components/Icons/LinkIcon.vue'
 import DocumentIcon from '@/components/Icons/DocumentIcon.vue'
 import ArrowUpRightIcon from '@/components/Icons/ArrowUpRightIcon.vue'
+import CalendarIcon from '@/components/Icons/CalendarIcon.vue'
 import SuccessIcon from '@/components/Icons/SuccessIcon.vue'
 import AttachmentIcon from '@/components/Icons/AttachmentIcon.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
@@ -284,7 +285,7 @@ const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
 
-const crmDealScript = useCRMDeal(doc , document)
+const crmDealScript = useCRMDeal(doc, document)
 
 // custom code
 provide('fieldButtonHandlers', crmDealScript.buttonHandlers || {})
@@ -471,34 +472,14 @@ const tabs = computed(() => {
       icon: ActivityIcon,
     },
     {
-      name: 'Emails',
-      label: __('Emails'),
-      icon: EmailIcon,
-    },
-    {
-      name: 'Comments',
-      label: __('Comments'),
-      icon: CommentIcon,
-    },
-    {
       name: 'Data',
       label: __('Quotation'),
       icon: DetailsIcon,
     },
     {
-      name: 'Events',
-      label: __('Events'),
-      icon: EventIcon,
-    },
-    {
-      name: 'Calls',
-      label: __('Calls'),
-      icon: PhoneIcon,
-    },
-    {
-      name: 'Tasks',
-      label: __('Tasks'),
-      icon: TaskIcon,
+      name: 'Emails',
+      label: __('Emails'),
+      icon: EmailIcon,
     },
     // custom code
     {
@@ -508,14 +489,39 @@ const tabs = computed(() => {
     },
     // custom code
     {
+      name: 'Booking',
+      label: __('Booking'),
+      icon: CalendarIcon, // change icon if you prefer
+    },
+    {
+      name: 'Calls',
+      label: __('Calls'),
+      icon: PhoneIcon,
+    },
+        {
       name: 'Notes',
       label: __('Notes'),
       icon: NoteIcon,
     },
     {
+      name: 'Tasks',
+      label: __('Tasks'),
+      icon: TaskIcon,
+    },
+    {
+      name: 'Comments',
+      label: __('Comments'),
+      icon: CommentIcon,
+    },
+    {
       name: 'Attachments',
       label: __('Attachments'),
       icon: AttachmentIcon,
+    },
+    {
+      name: 'Events',
+      label: __('Events'),
+      icon: EventIcon,
     },
     {
       name: 'WhatsApp',

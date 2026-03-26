@@ -225,7 +225,7 @@ const canDelete = computed(() => permissions.data?.permissions?.delete || false)
 
 const doc = computed(() => document.doc || {})
 
-const crmLeadScript = useCRMLead(doc , document)
+const crmLeadScript = useCRMLead(doc, document)
 
 // custom code
 provide('fieldButtonHandlers', crmLeadScript.buttonHandlers || {})
@@ -374,24 +374,14 @@ const tabs = computed(() => {
       icon: ActivityIcon,
     },
     {
-      name: 'Emails',
-      label: __('Emails'),
-      icon: EmailIcon,
-    },
-    {
-      name: 'Comments',
-      label: __('Comments'),
-      icon: CommentIcon,
-    },
-    {
       name: 'Data',
       label: __('Quotation'),
       icon: DetailsIcon,
     },
     {
-      name: 'Events',
-      label: __('Events'),
-      icon: EventIcon,
+      name: 'Emails',
+      label: __('Emails'),
+      icon: EmailIcon,
     },
     {
       name: 'Calls',
@@ -399,19 +389,29 @@ const tabs = computed(() => {
       icon: PhoneIcon,
     },
     {
-      name: 'Tasks',
-      label: __('Tasks'),
-      icon: TaskIcon,
-    },
-    {
       name: 'Notes',
       label: __('Notes'),
       icon: NoteIcon,
     },
     {
+      name: 'Tasks',
+      label: __('Tasks'),
+      icon: TaskIcon,
+    },
+    {
+      name: 'Comments',
+      label: __('Comments'),
+      icon: CommentIcon,
+    },
+    {
       name: 'Attachments',
       label: __('Attachments'),
       icon: AttachmentIcon,
+    },
+    {
+      name: 'Events',
+      label: __('Events'),
+      icon: EventIcon,
     },
     {
       name: 'WhatsApp',

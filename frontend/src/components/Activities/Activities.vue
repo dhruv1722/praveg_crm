@@ -236,6 +236,10 @@
       <PaymentFields :doctype="doctype" :docname="docname" @beforeSave="(data) => emit('beforeSave', data)"
         @afterSave="(data) => emit('afterSave', data)" />
     </div>
+    <div v-else-if="title == 'Booking'" class="h-full flex flex-col px-3 sm:px-10">
+      <BookingFields :doctype="doctype" :docname="docname" @beforeSave="(data) => emit('beforeSave', data)"
+        @afterSave="(data) => emit('afterSave', data)" />
+    </div>
     <!-- custom code -->
     <EmptyState v-else :title="emptyText" :description="emptyTextDescription" :icon="emptyTextIcon" :top="top" />
   </FadedScrollableDiv>
@@ -277,6 +281,7 @@ import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 
 // custom code
 import PaymentFields from '@/components/Activities/PaymentFields.vue'
+import BookingFields from '@/components/Activities/BookingFields.vue'
 // custom code
 import EventArea from '@/components/Activities/EventArea.vue'
 import WhatsAppArea from '@/components/Activities/WhatsAppArea.vue'
