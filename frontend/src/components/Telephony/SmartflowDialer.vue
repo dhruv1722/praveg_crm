@@ -31,10 +31,7 @@
         <!-- replace current button -->
         <button v-if="dialerPhone" class="sf-c360-btn" @click="openCustomer360">
           <span>{{ __('Customer 360') }}</span>
-          <span aria-hidden="true">↗</span>
         </button>
-
-
 
         <!-- Status block -->
         <div class="sf-status-block">
