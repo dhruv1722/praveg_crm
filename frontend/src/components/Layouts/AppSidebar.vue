@@ -191,7 +191,7 @@ const links = [
     to: 'Call Logs',
   },
   {
-    label: 'Customer360',
+    label: 'Customer 360',
     icon: SquareAsterisk,
     to: 'Customer360',
   },
