@@ -190,6 +190,11 @@ const links = [
     icon: PhoneIcon,
     to: 'Call Logs',
   },
+  {
+    label: 'Customer360',
+    icon: SquareAsterisk,
+    to: 'Customer360',
+  },
   // {
   //   label: 'AI Leads',
   //   icon: AiLeadsIcon,
@@ -259,6 +264,8 @@ function getIcon(routeName, icon) {
       return NoteIcon
     case 'Call Logs':
       return PhoneIcon
+    case 'Customer360':
+      return SquareAsterisk
     default:
       return PinIcon
   }

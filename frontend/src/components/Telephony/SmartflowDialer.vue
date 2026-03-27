@@ -21,9 +21,20 @@
 
         <!-- Number -->
 
-        <button class="sf-number sf-number-link" @click="filterLeadsByTappedNumber">
+        <!-- <button class="sf-number sf-number-link" @click="filterLeadsByTappedNumber">
+          {{ formattedNumber }}
+        </button> -->
+        <button class="sf-number sf-number-link">
           {{ formattedNumber }}
         </button>
+
+        <!-- replace current button -->
+        <button v-if="dialerPhone" class="sf-c360-btn" @click="openCustomer360">
+          <span>{{ __('Customer360') }}</span>
+          <span aria-hidden="true">↗</span>
+        </button>
+
+
 
         <!-- Status block -->
         <div class="sf-status-block">
@@ -53,20 +64,41 @@
 import { computed } from 'vue'
 import { useSmartflowCallStore } from '@/stores/smartflow'
 
-import { useRoute , useRouter } from 'vue-router'
-import { useDialerLeadFilterStore  } from '@/stores/filterIntent'
+import { useRoute, useRouter } from 'vue-router'
+import { useDialerLeadFilterStore } from '@/stores/filterIntent'
 
 const store = useSmartflowCallStore()
 
 const router = useRouter()
 const route = useRoute()
 
-const dialerLeadFilter  = useDialerLeadFilterStore()
+const dialerLeadFilter = useDialerLeadFilterStore()
+
+// add/replace in script
+const dialerPhone = computed(() => String(store.from_number || store.to || '').trim())
 
 function getDialerPhone() {
-  // Keep raw; Leads-side method normalizes to last 10
-  return String(store.from_number || store.to || '').trim()
+  return dialerPhone.value
 }
+
+async function openCustomer360() {
+  const phone = getDialerPhone()
+  if (!phone) return
+
+  // SAME TAB (not new tab) so popup/call status remains visible
+  await router.push({
+    name: 'Customer360',
+    query: { mobile_no: phone },
+  })
+}
+
+
+
+
+// function getDialerPhone() {
+//   // Keep raw; Leads-side method normalizes to last 10
+//   return String(store.from_number || store.to || '').trim()
+// }
 
 async function filterLeadsByTappedNumber() {
   const phone = getDialerPhone()
@@ -347,4 +379,27 @@ const isActive = computed(() =>
 .color-gray {
   color: #71717a;
 }
+
+/* add in <style scoped> */
+.sf-c360-btn {
+  margin-top: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #facc15;
+  /* yellow */
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.sf-c360-btn:hover {
+  color: #fde047;
+  text-decoration: underline;
+}
+
 </style>

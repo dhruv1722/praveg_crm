@@ -19,6 +19,12 @@ const routes = [
     component: () => import('@/pages/Dashboard.vue'),
   },
   {
+    alias: ['/customer360'],
+    path: '/customer360',
+    name: 'Customer360',
+    component: () => import('@/pages/Customer360Dashboard.vue'),
+  },
+  {
     alias: '/leads',
     path: '/leads/view/:viewType?',
     name: 'Leads',
