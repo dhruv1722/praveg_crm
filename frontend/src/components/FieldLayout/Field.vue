@@ -288,15 +288,6 @@ function isFieldVisible(field) {
   )
 }
 
-function getHtmlFieldContent(df) {
-  const renderer = fieldHtmlRenderers?.[df.fieldname]
-
-  if (typeof renderer === 'function') {
-    return renderer(data.value, df)
-  }
-
-  return df.options || ''
-}
 
 const getPlaceholder = (field) => {
   if (field.placeholder) {
@@ -429,6 +420,8 @@ function getHtmlFieldContent(df) {
 
   return df.options || ''
 }
+
+
 // custom code
 
 </script>
