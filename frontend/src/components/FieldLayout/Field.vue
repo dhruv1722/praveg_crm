@@ -265,11 +265,20 @@ const field = computed(() => {
 
 watchEffect(() => {
   const df = field.value
+  if (!df?.default || !data.value) return
 
-  if (!df?.default || !shouldApplyResolvedDefault(df)) return
+  const value = data.value[df.fieldname]
 
-  data.value[df.fieldname] = getDefaultValue(df.default, df.fieldtype)
+  if (
+    value === undefined ||
+    value === null ||
+    value === '' ||
+    (Array.isArray(value) && value.length === 0)
+  ) {
+    data.value[df.fieldname] = getDefaultValue(df.default, df.fieldtype)
+  }
 })
+
 
 function isFieldVisible(field) {
   if (preview.value) return true
@@ -330,24 +339,6 @@ function getDataValue(value, field) {
     return value || 0
   }
   return value
-}
-
-function shouldApplyResolvedDefault(df) {
-  if (!data.value) return false
-
-  if (isGridRow) {
-    if (!data.value.__islocal) return false
-  } else if (!data.value.name) {
-    return false
-  }
-
-  const value = data.value[df.fieldname]
-
-  if (Array.isArray(value)) {
-    return value.length === 0
-  }
-
-  return value === undefined || value === null || value === ''
 }
 
 function getDefaultValue(defaultValue, fieldtype) {
