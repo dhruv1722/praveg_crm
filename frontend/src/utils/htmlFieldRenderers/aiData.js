@@ -142,8 +142,12 @@ export function buildAIDataDetailTable(data) {
     'border:1px solid var(--outline-gray-2)',
     'padding:6px 8px',
     'vertical-align:top',
+    'text-align:left',
     'color:var(--ink-gray-8);',
   ].join(';')
+
+  const labelCellStyle = [cellStyle, 'font-weight:600;'].join(';')
+  const valueCellStyle = [cellStyle, 'white-space:pre-wrap', 'word-break:break-word;'].join(';')
 
   const sectionStyle = [
     'text-align:center',
@@ -175,16 +179,16 @@ export function buildAIDataDetailTable(data) {
         for (const [subKey, subValue] of Object.entries(value)) {
           rows.push(
             `<tr>
-              <td style="${cellStyle}">${escapeHtml(titleize(subKey))}</td>
-              <td style="${cellStyle}">${formatValue(subValue)}</td>
+              <td style="${labelCellStyle}">${escapeHtml(titleize(subKey))}</td>
+              <td style="${valueCellStyle}">${formatValue(subValue)}</td>
             </tr>`,
           )
         }
       } else {
         rows.push(
           `<tr>
-            <td style="${cellStyle}">${escapeHtml(titleize(key))}</td>
-            <td style="${cellStyle}">${formatValue(value)}</td>
+            <td style="${labelCellStyle}">${escapeHtml(titleize(key))}</td>
+            <td style="${valueCellStyle}">${formatValue(value)}</td>
           </tr>`,
         )
       }
