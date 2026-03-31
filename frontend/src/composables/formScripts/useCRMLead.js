@@ -1,6 +1,8 @@
 import { watch } from 'vue'
 import { toast, createResource, LoadingIndicator } from 'frappe-ui'
 import dayjs from "dayjs"
+import { buildQuotationVersionHtml } from '@/utils/htmlFieldRenderers/quotationVersion'
+import { buildAIDataListHtml } from '@/utils/htmlFieldRenderers/aiData'
 
 export function useCRMLead(doc, document) {
 
@@ -630,8 +632,26 @@ export function useCRMLead(doc, document) {
       row.room_rate_per_night = Math.max(0, current_room_rate_per_night - rate_modifier)
     }
 
+    row.__rateModifierButtonClicked = true
     // recalc row totals and overall totals
     calculateChildRow(row)
+  }
+
+  async function send_whatsapp_message() {
+    if (!doc.value.custom_reminder) {
+      toast.error('Please write a message first')
+      return
+    }
+
+    const phone = String(doc.value.mobile_no || '').replace(/\D/g, '')
+    if (!phone) {
+      toast.error('Invalid phone number')
+      return
+    }
+
+    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_reminder)}`
+
+    window.open(url, "_blank");
   }
 
   const buttonHandlers = {
@@ -641,12 +661,27 @@ export function useCRMLead(doc, document) {
     custom_generate_template: generate_quotation_template,
     custom_share_on_whatsapp: send_whatsapp_quotation,
     custom_generate_template_payment: generate_payment_template,
-    custom_share_on_whatsapp_payment: send_whatsapp_payment
+    custom_share_on_whatsapp_payment: send_whatsapp_payment,
+    custom_send_whatsapp_message: send_whatsapp_message
+  }
+
+  const htmlRenderers = {
+    custom_quotation_version_html: (currentDoc) =>
+      buildQuotationVersionHtml(currentDoc),
+    custom_ai_data_html: (currentDoc) =>
+      buildAIDataListHtml(currentDoc),
+  }
+
+  const textareaRowsMap = {
+    "custom_quotation_template": 18,
+    "custom_payment_link_template": 6,
   }
 
   return {
     setupWatchers,
     beforeSave,
-    buttonHandlers
+    buttonHandlers,
+    htmlRenderers,
+    textareaRowsMap
   }
 }

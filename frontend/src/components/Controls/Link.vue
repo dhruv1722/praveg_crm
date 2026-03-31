@@ -36,7 +36,7 @@
 
       <template #footer="{ value, close }">
         <div v-if="attrs.onCreate">
-          <Button variant="ghost" class="w-full !justify-start" :label="__('Create new')" iconLeft="plus"
+          <Button v-if="isManager()" variant="ghost" class="w-full !justify-start" :label="__('Create new')" iconLeft="plus"
             @click="() => attrs.onCreate(value, close)" />
         </div>
         <div>
@@ -53,9 +53,11 @@ import Autocomplete from '@/components/frappe-ui/Autocomplete.vue'
 import { watchDebounced } from '@vueuse/core'
 import { createResource } from 'frappe-ui'
 import { inject, useAttrs, computed, ref } from 'vue'
+import { usersStore } from '@/stores/users'
 
 const parentDoc = inject('parentDoc', null)
 const resolvedRow = inject('rows', null)
+const { isManager } = usersStore()
 
 const props = defineProps({
   doctype: {

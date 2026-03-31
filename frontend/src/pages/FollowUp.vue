@@ -195,7 +195,6 @@ const sortState = computed(() => getSortState())
 
 const columns = [
   { label: __('Lead'), key: 'lead_name', width: '16rem' },
-  { label: __('Organization'), key: 'organization', width: '14rem' },
   { label: __('Status'), key: 'status', width: '10rem' },
   { label: __('Follow Up'), key: 'next_follow_up_label', width: '10rem' },
   { label: __('Due Date'), key: 'next_follow_up_date', width: '10rem' },

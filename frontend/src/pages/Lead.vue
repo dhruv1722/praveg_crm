@@ -229,6 +229,8 @@ const crmLeadScript = useCRMLead(doc, document)
 
 // custom code
 provide('fieldButtonHandlers', crmLeadScript.buttonHandlers || {})
+provide('fieldHtmlRenderers', crmLeadScript.htmlRenderers || {})
+provide('fieldTextareaRowsMap', crmLeadScript.textareaRowsMap || {})
 // custom code
 
 const callStore = useSmartflowCallStore()

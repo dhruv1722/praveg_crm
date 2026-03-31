@@ -289,6 +289,12 @@ const crmDealScript = useCRMDeal(doc, document)
 
 // custom code
 provide('fieldButtonHandlers', crmDealScript.buttonHandlers || {})
+provide('fieldHtmlRenderers', crmDealScript.htmlRenderers || {})
+provide('fieldTextareaRowsMap', crmDealScript.textareaRowsMap || {})
+provide(
+  'emailTemplateVisibility',
+  crmDealScript.isEmailTemplateVisible || (() => true),
+)
 // custom code
 
 const callStore = useSmartflowCallStore()

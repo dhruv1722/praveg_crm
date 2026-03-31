@@ -92,6 +92,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  templateVisibilityResolver: {
+    type: Function,
+    default: () => true,
+  },
 })
 
 const show = defineModel()
@@ -128,13 +132,26 @@ onMounted(() => {
 })
 
 const filteredTemplates = computed(() => {
+  const query = search.value.toLowerCase()
+
   return (
     templates.data?.filter((template) => {
-      return (
-        template.name.toLowerCase().includes(search.value.toLowerCase()) ||
-        template.subject.toLowerCase().includes(search.value.toLowerCase())
-      )
+      const matchesSearch =
+        template.name?.toLowerCase().includes(query) ||
+        template.subject?.toLowerCase().includes(query)
+
+      if (!matchesSearch) return false
+
+      return props.templateVisibilityResolver(template)
     }) ?? []
+  
+  // return (
+  //   templates.data?.filter((template) => {
+  //     return (
+  //       template.name.toLowerCase().includes(search.value.toLowerCase()) ||
+  //       template.subject.toLowerCase().includes(search.value.toLowerCase())
+  //     )
+  //   }) ?? []
   )
 })
 

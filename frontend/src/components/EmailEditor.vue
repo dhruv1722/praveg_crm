@@ -89,7 +89,9 @@
       </div>
     </template>
   </TextEditor>
-  <EmailTemplateSelectorModal v-model="showEmailTemplateSelectorModal" :doctype="doctype" @apply="applyEmailTemplate" />
+  <EmailTemplateSelectorModal v-model="showEmailTemplateSelectorModal" 
+  :templateVisibilityResolver="isEmailTemplateVisible"
+  :doctype="doctype" @apply="applyEmailTemplate" />
 </template>
 
 <script setup>
@@ -105,7 +107,7 @@ import { useTelemetry } from 'frappe-ui/frappe'
 import { validateEmail } from '@/utils'
 import Paragraph from '@tiptap/extension-paragraph'
 import { EditorContent } from '@tiptap/vue-3'
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick ,inject } from 'vue'
 
 const props = defineProps({
   placeholder: {
@@ -173,6 +175,8 @@ const ccEmails = ref([])
 const bccEmails = ref([])
 const ccInput = ref(null)
 const bccInput = ref(null)
+
+const isEmailTemplateVisible = inject('emailTemplateVisibility', () => true)
 
 const editor = computed(() => {
   return textEditor.value.editor
