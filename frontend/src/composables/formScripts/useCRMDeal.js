@@ -691,7 +691,7 @@ export function useCRMDeal(doc, document) {
   }
 
   const emailTemplateVisibilityRules = {
-    'IDS Voucher': () => hasAllPaymentReceiptsReceived(),
+    'SOP for Booking': () => hasAllPaymentReceiptsReceived(),
   }
 
   function isEmailTemplateVisible(template) {

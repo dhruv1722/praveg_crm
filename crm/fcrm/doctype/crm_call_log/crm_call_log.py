@@ -241,7 +241,7 @@ def parse_call_log(call):
     return call
 
 @frappe.whitelist()
-def get_call_log(name):
+def get_call_log(name: str) -> dict:
 	call = frappe.get_cached_doc(
 		"CRM Call Log",
 		name,
@@ -312,7 +312,8 @@ def get_call_log(name):
 
 
 @frappe.whitelist()
-def create_lead_from_call_log(call_log, lead_details=None):
+def create_lead_from_call_log(call_log: str | dict,lead_details: str | dict | None = None,) -> str:
+	
 	call_log_data = frappe.parse_json(call_log or {})
 
 	if isinstance(call_log_data, str):
@@ -365,30 +366,28 @@ def create_lead_from_call_log(call_log, lead_details=None):
 
 
 @frappe.whitelist()
-def get_reference_display_name(doctype, name):
-
+def get_reference_display_name(doctype: str, name: str) -> str:
     if doctype == "CRM Lead":
-        return frappe.db.get_value("CRM Lead", name, "lead_name")
+        return frappe.db.get_value("CRM Lead", name, "lead_name") 
 
     if doctype == "AI Leads":
         data = frappe.db.get_value(
             "AI Leads",
             name,
             ["first_name", "last_name"],
-            as_dict=True
+            as_dict=True,
         )
         if data:
-            return f"{data.first_name or ''} {data.last_name or ''}".strip()
+            return f"{data.first_name or ''} {data.last_name or ''}".strip() 
 
     if doctype == "CRM Deal":
         data = frappe.db.get_value(
             "CRM Deal",
             name,
             ["first_name", "last_name"],
-            as_dict=True
+            as_dict=True,
         )
         if data:
-            return f"{data.first_name or ''} {data.last_name or ''}".strip()
+            return f"{data.first_name or ''} {data.last_name or ''}".strip() 
 
     return name
-
