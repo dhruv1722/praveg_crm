@@ -87,7 +87,6 @@ export function buildAIDataListHtml(doc) {
             <tr>
               <td style="${cellStyle} text-align:center;">${escapeHtml(index + 1)}</td>
               <td style="${cellStyle}">${escapeHtml(formatDateTime(row.creation))}</td>
-              <td style="${cellStyle}">${escapeHtml(row.owner || '-')}</td>
               <td style="${cellStyle} text-align:center;">${escapeHtml(`${coverage.ratio}%`)}</td>
               <td style="${cellStyle} text-align:center;">
                 <button
@@ -163,7 +162,7 @@ export function buildAIDataListHtml(doc) {
       .join('')
     : `
       <tr>
-        <td style="${cellStyle} text-align:center;" colspan="5">
+        <td style="${cellStyle} text-align:center;" colspan="4">
           No AI Data found
         </td>
       </tr>
@@ -172,17 +171,15 @@ export function buildAIDataListHtml(doc) {
   return `
     <table style="${tableStyle}">
       <colgroup>
-        <col style="width:8%">
-        <col style="width:24%">
-        <col style="width:24%">
-        <col style="width:14%">
+        <col style="width:10%">
+        <col style="width:34%">
+        <col style="width:18%">
         <col style="width:96px">
       </colgroup>
       <tbody>
         <tr>
           <th style="${headerStyle}">No</th>
           <th style="${headerStyle}">Received At</th>
-          <th style="${headerStyle}">Received By</th>
           <th style="${headerStyle}">Coverage</th>
           <th style="${headerStyle}">Open</th>
         </tr>
