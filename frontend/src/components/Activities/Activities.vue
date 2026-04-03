@@ -103,6 +103,11 @@
         <div v-if="activity.activity_type == 'communication'" class="pb-5 mt-px">
           <EmailArea :activity="activity" :emailBox="emailBox" />
         </div>
+        <!-- custom code whatsapp -->
+        <div v-else-if="activity.activity_type == 'whatsapp_log'" class="mb-4">
+          <WhatsAppLogArea :activity="activity" />
+        </div>
+        <!-- custom code end -->
         <div class="mb-4" :id="activity.name" v-else-if="activity.activity_type == 'comment'">
           <CommentArea :activity="activity" />
         </div>
@@ -282,6 +287,7 @@ import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 // custom code
 import PaymentFields from '@/components/Activities/PaymentFields.vue'
 import BookingFields from '@/components/Activities/BookingFields.vue'
+import WhatsAppLogArea from '@/components/Activities/WhatsAppLogArea.vue'
 // custom code
 import EventArea from '@/components/Activities/EventArea.vue'
 import WhatsAppArea from '@/components/Activities/WhatsAppArea.vue'
@@ -627,6 +633,9 @@ function timelineIcon(activity_type, is_lead) {
       break
     case 'attachment_log':
       icon = AttachmentIcon
+      break
+    case 'whatsapp_log':
+      icon = WhatsAppIcon
       break
     default:
       icon = DotIcon

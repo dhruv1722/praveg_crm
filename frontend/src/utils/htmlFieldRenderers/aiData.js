@@ -1,55 +1,5 @@
 import { formatDate } from '@/utils'
 
-const ALLOWED_SECTIONS = ['processing', 'ai_insights', 'transcript']
-
-const EXPECTED_AI_PAYLOAD_FIELDS = [
-  { key: 'lead_id', label: 'Lead ID', paths: [['lead_id']] },
-  { key: 'call_log_id', label: 'Call Log ID', paths: [['call_log_id']] },
-  { key: 'mobile_no', label: 'Mobile No', paths: [['person', 'mobile_no'], ['mobile_no']] },
-  { key: 'user_type', label: 'User Type', paths: [['person', 'user_type'], ['user_type']] },
-  { key: 'salutation', label: 'Salutation', paths: [['person', 'salutation'], ['salutation']] },
-  { key: 'first_name', label: 'First Name', paths: [['person', 'first_name'], ['first_name']] },
-  { key: 'last_name', label: 'Last Name', paths: [['person', 'last_name'], ['last_name']] },
-  { key: 'email', label: 'Email', paths: [['person', 'email'], ['email']] },
-  { key: 'city', label: 'City', paths: [['person', 'city'], ['city']] },
-  { key: 'state', label: 'State', paths: [['person', 'state'], ['state']] },
-  { key: 'country', label: 'Country', paths: [['person', 'country'], ['country']] },
-  { key: 'pincode', label: 'Pincode', paths: [['person', 'pincode'], ['pincode']] },
-  { key: 'hotel_property', label: 'Hotel Property', paths: [['booking', 'hotel_property'], ['hotel_property']] },
-  { key: 'check_in', label: 'Check In', paths: [['booking', 'check_in'], ['check_in']] },
-  { key: 'check_out', label: 'Check Out', paths: [['booking', 'check_out'], ['check_out']] },
-]
-
-const EXPECTED_GUEST_ROWS = [
-  {
-    type: 'Room',
-    fields: [
-      { key: 'room_category', label: 'Room Category' },
-      { key: 'no_of_rooms', label: 'No Of Rooms' },
-      { key: 'extra_beds', label: 'Extra Beds' },
-      { key: 'adult', label: 'Adult' },
-      { key: 'child', label: 'Child' },
-      { key: 'first_child_age', label: 'First Child Age' },
-      { key: 'second_child_age', label: 'Second Child Age' },
-    ],
-  },
-  {
-    type: 'Meal',
-    fields: [
-      { key: 'meal_plan', label: 'Meal Plan' },
-      { key: 'number_of_meal_persons', label: 'Number Of Meal Persons' },
-    ],
-  },
-  {
-    type: 'Package',
-    fields: [
-      { key: 'package', label: 'Package' },
-      { key: 'total_package', label: 'Total Package' },
-    ],
-  },
-]
-
-
 export function buildAIDataListHtml(doc) {
   const rows = getSortedRows(doc?.custom_ai_data_table || [])
 
@@ -58,37 +8,35 @@ export function buildAIDataListHtml(doc) {
     'border-collapse:collapse',
     'table-layout:fixed',
     'color:var(--ink-gray-8)',
-    'font-size:13px;',
+    'font-size:13px',
   ].join(';')
 
   const cellStyle = [
     'border:1px solid var(--outline-gray-2)',
     'padding:6px 8px',
     'vertical-align:middle',
-    'color:var(--ink-gray-8);',
+    'color:var(--ink-gray-8)',
   ].join(';')
 
   const headerStyle = [
     cellStyle,
     'background:var(--surface-gray-2)',
     'font-weight:600',
-    'text-align:center;',
+    'text-align:center',
   ].join(';')
 
   const body = rows.length
     ? rows
-      .map((row, index) => {
-        const dialogId = getDialogId(row, index)
-        const data = getRowJson(row)
-        const coverage = getPayloadCoverage(data)
-        const detailHtml = buildAIDataDetailTable(data)
+        .map((row, index) => {
+          const dialogId = getDialogId(row, index)
+          const rowNumber = rows.length - index
+          const detailHtml = buildAIDataDetailTable(row?.ai_data_json)
 
-        return `
+          return `
             <tr>
-              <td style="${cellStyle} text-align:center;">${escapeHtml(index + 1)}</td>
+              <td style="${cellStyle}; text-align:center;">${escapeHtml(rowNumber)}</td>
               <td style="${cellStyle}">${escapeHtml(formatDateTime(row.creation))}</td>
-              <td style="${cellStyle} text-align:center;">${escapeHtml(`${coverage.ratio}%`)}</td>
-              <td style="${cellStyle} text-align:center;">
+              <td style="${cellStyle}; text-align:center;">
                 <button
                   type="button"
                   onclick="document.getElementById('${dialogId}').showModal()"
@@ -110,8 +58,8 @@ export function buildAIDataListHtml(doc) {
                 <dialog
                   id="${dialogId}"
                   style="
-                    width:min(980px, 94vw);
-                    height:min(82vh, 900px);
+                    width:min(1040px, 96vw);
+                    height:min(84vh, 920px);
                     border:1px solid var(--outline-gray-2);
                     border-radius:12px;
                     padding:0;
@@ -120,11 +68,11 @@ export function buildAIDataListHtml(doc) {
                     overflow:hidden;
                   "
                 >
-                  <div style="padding:16px 18px;border-bottom:1px solid var(--outline-gray-2);display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                  <div style="padding:16px 18px; border-bottom:1px solid var(--outline-gray-2); display:flex; align-items:center; justify-content:space-between; gap:12px;">
                     <div>
-                      <div style="font-size:16px;font-weight:600;">AI Data #${escapeHtml(index + 1)}</div>
-                      <div style="font-size:12px;color:var(--ink-gray-6);margin-top:4px;">
-                        Field Coverage: ${escapeHtml(`${coverage.receivedCount}/${coverage.totalCount} (${coverage.ratio}%)`)}
+                      <div style="font-size:16px; font-weight:600;">AI Data #${escapeHtml(rowNumber)}</div>
+                      <div style="font-size:12px; color:var(--ink-gray-6); margin-top:4px;">
+                        JSON rendered as table
                       </div>
                     </div>
                     <button
@@ -146,9 +94,8 @@ export function buildAIDataListHtml(doc) {
                   <div
                     style="
                       padding:16px 18px;
-                      height:calc(82vh - 70px);
-                      overflow-y:auto;
-                      overflow-x:hidden;
+                      height:calc(84vh - 70px);
+                      overflow:auto;
                       box-sizing:border-box;
                     "
                   >
@@ -158,11 +105,11 @@ export function buildAIDataListHtml(doc) {
               </td>
             </tr>
           `
-      })
-      .join('')
+        })
+        .join('')
     : `
       <tr>
-        <td style="${cellStyle} text-align:center;" colspan="4">
+        <td style="${cellStyle}; text-align:center;" colspan="3">
           No AI Data found
         </td>
       </tr>
@@ -171,16 +118,14 @@ export function buildAIDataListHtml(doc) {
   return `
     <table style="${tableStyle}">
       <colgroup>
-        <col style="width:10%">
-        <col style="width:34%">
-        <col style="width:18%">
+        <col style="width:12%">
+        <col style="width:auto">
         <col style="width:96px">
       </colgroup>
       <tbody>
         <tr>
           <th style="${headerStyle}">No</th>
           <th style="${headerStyle}">Received At</th>
-          <th style="${headerStyle}">Coverage</th>
           <th style="${headerStyle}">Open</th>
         </tr>
         ${body}
@@ -189,306 +134,214 @@ export function buildAIDataListHtml(doc) {
   `
 }
 
+export function buildAIDataDetailTable(rawValue) {
+  const parsed = parseJsonSafely(rawValue)
+  const content = getRenderableValue(rawValue, parsed)
 
-export function buildAIDataDetailTable(data) {
-  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+  if (content === null || content === undefined || content === '') {
     return `
-      <div style="padding:12px;border:1px solid var(--outline-gray-2);border-radius:8px;">
+      <div style="padding:12px; border:1px solid var(--outline-gray-2); border-radius:8px;">
         No AI data available
       </div>
     `
   }
 
-  const coverage = getPayloadCoverage(data)
-
   return `
-    <div style="display:grid;gap:16px;">
-      ${buildCoverageSummaryHtml(coverage)}
-      ${buildPayloadComparisonTable(coverage.rows)}
-      ${buildAIStructuredDataTable(data)}
+    <div style="display:grid; gap:12px;">
+      <div style="font-size:14px; font-weight:600;">AI Data</div>
+      ${renderJsonNode(content, 0)}
     </div>
   `
 }
 
-
-function buildAIStructuredDataTable(data) {
-  const tableStyle = [
-    'width:100%',
-    'border-collapse:collapse',
-    'color:var(--ink-gray-8)',
-    'font-size:13px;',
-  ].join(';')
-
-  const cellStyle = [
-    'border:1px solid var(--outline-gray-2)',
-    'padding:6px 8px',
-    'vertical-align:top',
-    'color:var(--ink-gray-8);',
-  ].join(';')
-
-  const labelCellStyle = [cellStyle, 'text-align:left', 'font-weight:600;'].join(';')
-  const valueCellStyle = [
-    cellStyle,
-    'text-align:left',
-    'white-space:pre-wrap',
-    'word-break:break-word;',
-  ].join(';')
-
-  const sectionStyle = [
-    'text-align:center',
-    'font-weight:600',
-    'background:var(--surface-gray-2);',
-  ].join(';')
-
-  const subsectionStyle = [
-    'text-align:center',
-    'font-weight:600',
-    'background:var(--surface-gray-2);',
-  ].join(';')
-
-  const rows = []
-
-  for (const section of ALLOWED_SECTIONS) {
-    const sectionData = data?.[section]
-    if (!isPlainObject(sectionData)) continue
-
-    rows.push(
-      `<tr><th colspan="2" style="${cellStyle}${sectionStyle}">${escapeHtml(titleize(section))}</th></tr>`,
-    )
-
-    for (const [key, value] of Object.entries(sectionData)) {
-      if (isPlainObject(value)) {
-        rows.push(
-          `<tr><th colspan="2" style="${cellStyle}${subsectionStyle}">${escapeHtml(titleize(key))}</th></tr>`,
-        )
-
-        for (const [subKey, subValue] of Object.entries(value)) {
-          rows.push(
-            `<tr>
-              <td style="${labelCellStyle}">${escapeHtml(titleize(subKey))}</td>
-              <td style="${valueCellStyle}">${formatValue(subValue)}</td>
-            </tr>`,
-          )
-        }
-      } else {
-        rows.push(
-          `<tr>
-            <td style="${labelCellStyle}">${escapeHtml(titleize(key))}</td>
-            <td style="${valueCellStyle}">${formatValue(value)}</td>
-          </tr>`,
-        )
-      }
-    }
-  }
-
-  if (!rows.length) {
-    rows.push(
-      `<tr><td style="${cellStyle} text-align:center;" colspan="2">No AI Data available</td></tr>`,
-    )
-  }
-
-  return `
-    <div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">AI Sections</div>
-      <table style="${tableStyle}">
-        <tbody>${rows.join('')}</tbody>
-      </table>
-    </div>
-  `
-}
-
-
-function getPayloadCoverage(data) {
-  const mainRows = EXPECTED_AI_PAYLOAD_FIELDS.map((field) => {
-    const value = getFirstAvailableValue(data, field.paths)
-    const received = hasMeaningfulValue(value)
-
-    return {
-      key: field.key,
-      label: field.label,
-      received,
-      value,
-    }
-  })
-
-  const guestRows = getGuestCoverageRows(data)
-  const rows = [...mainRows, ...guestRows]
-
-  const totalCount = rows.length
-  const receivedCount = rows.filter((row) => row.received).length
-  const ratio = totalCount ? Math.round((receivedCount / totalCount) * 100) : 0
-
-  return {
-    rows,
-    totalCount,
-    receivedCount,
-    ratio,
-  }
-}
-
-function getGuestCoverageRows(data) {
-  const guestRows = Array.isArray(data?.booking?.guest)
-    ? data.booking.guest
-    : Array.isArray(data?.guest)
-      ? data.guest
-      : []
-
-  const coverageRows = []
-
-  for (const guestConfig of EXPECTED_GUEST_ROWS) {
-    const guestRow = findGuestRowByType(guestRows, guestConfig.type)
-
-    for (const field of guestConfig.fields) {
-      const value = guestRow?.[field.key]
-      const received = hasMeaningfulValue(value)
-
-      coverageRows.push({
-        key: `guest_${guestConfig.type.toLowerCase()}_${field.key}`,
-        label: `${guestConfig.type} - ${field.label}`,
-        received,
-        value,
-      })
-    }
-  }
-
-  return coverageRows
-}
-
-function findGuestRowByType(rows, type) {
-  return rows.find((row) => String(row?.type || '').trim().toLowerCase() === type.toLowerCase()) || null
-}
-
-
-
-function getFirstAvailableValue(source, paths) {
-  for (const path of paths) {
-    const value = getValueByPath(source, path)
-    if (hasMeaningfulValue(value)) return value
-  }
-
+function getRenderableValue(rawValue, parsedValue) {
+  if (parsedValue !== null) return parsedValue
+  if (typeof rawValue === 'string' && rawValue.trim()) return rawValue.trim()
+  if (rawValue && typeof rawValue === 'object') return rawValue
   return null
 }
 
-function getValueByPath(source, path) {
-  let current = source
-
-  for (const segment of path) {
-    if (!current || typeof current !== 'object') return undefined
-    current = current[segment]
+function renderJsonNode(value, depth = 0) {
+  if (Array.isArray(value)) {
+    return renderArrayTable(value, depth)
   }
 
-  return current
+  if (isPlainObject(value)) {
+    return renderObjectTable(value, depth)
+  }
+
+  return renderPrimitiveBlock(value)
 }
 
-function hasMeaningfulValue(value) {
-  if (value === null || value === undefined) return false
-  if (typeof value === 'string') return value.trim() !== ''
-  if (Array.isArray(value)) return value.length > 0
-  if (isPlainObject(value)) return Object.keys(value).length > 0
-  return true
-}
+function renderObjectTable(obj, depth = 0) {
+  const entries = Object.entries(obj || {})
 
-function buildCoverageSummaryHtml(coverage) {
-  return `
-    <div style="padding:12px 14px;border:1px solid var(--outline-gray-2);border-radius:8px;background:var(--surface-gray-1);">
-      <div style="font-size:14px;font-weight:600;">Payload Coverage Summary</div>
-      <div style="margin-top:6px;font-size:13px;color:var(--ink-gray-7);">
-        ${escapeHtml(`${coverage.receivedCount} of ${coverage.totalCount} expected fields received`)}
-      </div>
-      <div style="margin-top:4px;font-size:18px;font-weight:700;color:var(--ink-blue-3);">
-        ${escapeHtml(`${coverage.ratio}%`)}
-      </div>
-    </div>
-  `
-}
+  if (!entries.length) {
+    return renderPrimitiveBlock('-')
+  }
 
-function buildPayloadComparisonTable(rows) {
-  const tableStyle = [
-    'width:100%',
-    'border-collapse:collapse',
-    'color:var(--ink-gray-8)',
-    'font-size:13px;',
-  ].join(';')
+  const rows = entries
+    .map(([key, value]) => {
+      const label = titleize(key)
 
-  const cellStyle = [
-    'border:1px solid var(--outline-gray-2)',
-    'padding:6px 8px',
-    'vertical-align:top',
-    'color:var(--ink-gray-8);',
-  ].join(';')
+      if (isComplexValue(value)) {
+        return `
+          <tr>
+            <th colspan="2" style="${getSectionCellStyle(depth)}">${escapeHtml(label)}</th>
+          </tr>
+          <tr>
+            <td colspan="2" style="${getValueWrapperStyle()}">
+              ${renderJsonNode(value, depth + 1)}
+            </td>
+          </tr>
+        `
+      }
 
-  const headerStyle = [
-    cellStyle,
-    'background:var(--surface-gray-2)',
-    'font-weight:600',
-    'text-align:center;',
-  ].join(';')
-
-  const body = rows
-    .map((row) => {
       return `
         <tr>
-          <td style="${cellStyle} font-weight:600;">${escapeHtml(row.label)}</td>
-          <td style="${cellStyle}">${row.received ? formatCoverageValue(row.key, row.value) : '-'}</td>
-          <td style="${cellStyle} text-align:center;">${row.received ? '-' : 'Yes'}</td>
+          <td style="${getLabelCellStyle()}">${escapeHtml(label)}</td>
+          <td style="${getValueCellStyle()}">${formatPrimitive(value)}</td>
         </tr>
       `
     })
     .join('')
 
   return `
-    <div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Expected Field Comparison</div>
-      <table style="${tableStyle}">
-        <colgroup>
-          <col style="width:28%">
-          <col style="width:52%">
-          <col style="width:20%">
-        </colgroup>
-        <tbody>
+    <table style="${getNestedTableStyle(depth)}">
+      <tbody>${rows}</tbody>
+    </table>
+  `
+}
+
+function renderArrayTable(items, depth = 0) {
+  if (!items.length) {
+    return renderPrimitiveBlock('[]')
+  }
+
+  const rows = items
+    .map((item, index) => {
+      const itemLabel = `Item ${index + 1}`
+
+      if (isComplexValue(item)) {
+        return `
           <tr>
-            <th style="${headerStyle}">Field</th>
-            <th style="${headerStyle}">Received</th>
-            <th style="${headerStyle}">Not Received</th>
+            <th colspan="2" style="${getSectionCellStyle(depth)}">${escapeHtml(itemLabel)}</th>
           </tr>
-          ${body}
-        </tbody>
-      </table>
+          <tr>
+            <td colspan="2" style="${getValueWrapperStyle()}">
+              ${renderJsonNode(item, depth + 1)}
+            </td>
+          </tr>
+        `
+      }
+
+      return `
+        <tr>
+          <td style="${getLabelCellStyle()}">${escapeHtml(itemLabel)}</td>
+          <td style="${getValueCellStyle()}">${formatPrimitive(item)}</td>
+        </tr>
+      `
+    })
+    .join('')
+
+  return `
+    <table style="${getNestedTableStyle(depth)}">
+      <tbody>${rows}</tbody>
+    </table>
+  `
+}
+
+function renderPrimitiveBlock(value) {
+  return `
+    <div
+      style="
+        padding:10px 12px;
+        border:1px solid var(--outline-gray-2);
+        border-radius:8px;
+        background:var(--surface-gray-1);
+        white-space:pre-wrap;
+        word-break:break-word;
+        text-align:left;
+      "
+    >
+      ${formatPrimitive(value)}
     </div>
   `
 }
 
-function formatCoverageValue(fieldKey, value) {
-  if (!hasMeaningfulValue(value)) return '-'
-
-  if (Array.isArray(value)) {
-    return value.map((item) => escapeHtml(String(item))).join('<br>')
-  }
-
-  if (isPlainObject(value)) {
-    return escapeHtml(JSON.stringify(value))
-  }
-
+function formatPrimitive(value) {
+  if (value === null || value === undefined || value === '') return '-'
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
   return escapeHtml(String(value))
 }
 
-
-
-function getSortedRows(rows) {
-  return [...rows].sort((a, b) => {
-    const aCreation = toTimestamp(a?.creation)
-    const bCreation = toTimestamp(b?.creation)
-    if (aCreation !== bCreation) return bCreation - aCreation
-
-    const aIdx = Number(a?.idx || 0)
-    const bIdx = Number(b?.idx || 0)
-    return bIdx - aIdx
-  })
+function isComplexValue(value) {
+  return Array.isArray(value) || isPlainObject(value)
 }
 
-function getRowJson(row) {
-  const value = row?.ai_data_json
+function getNestedTableStyle(depth = 0) {
+  const margin = depth === 0 ? '0' : '4px 0 0'
+  return [
+    'width:100%',
+    'border-collapse:collapse',
+    'table-layout:fixed',
+    'font-size:13px',
+    'color:var(--ink-gray-8)',
+    `margin:${margin}`,
+  ].join(';')
+}
 
+function getLabelCellStyle() {
+  return [
+    'width:28%',
+    'border:1px solid var(--outline-gray-2)',
+    'padding:8px 10px',
+    'vertical-align:top',
+    'font-weight:600',
+    'background:var(--surface-gray-1)',
+    'text-align:left',
+    'word-break:break-word',
+  ].join(';')
+}
+
+function getValueCellStyle() {
+  return [
+    'border:1px solid var(--outline-gray-2)',
+    'padding:8px 10px',
+    'vertical-align:top',
+    'text-align:left',
+    'white-space:pre-wrap',
+    'word-break:break-word',
+  ].join(';')
+}
+
+function getValueWrapperStyle() {
+  return [
+    'border:1px solid var(--outline-gray-2)',
+    'padding:8px',
+    'vertical-align:top',
+    'text-align:left',
+  ].join(';')
+}
+
+function getSectionCellStyle(depth = 0) {
+  const backgrounds = [
+    'var(--surface-gray-2)',
+    'var(--surface-gray-1)',
+    'var(--surface-gray-2)',
+  ]
+
+  return [
+    'border:1px solid var(--outline-gray-2)',
+    'padding:8px 10px',
+    'text-align:left',
+    'font-weight:700',
+    `background:${backgrounds[depth % backgrounds.length]}`,
+    'word-break:break-word',
+  ].join(';')
+}
+
+function parseJsonSafely(value) {
   if (typeof value === 'string') {
     try {
       return JSON.parse(value)
@@ -504,28 +357,22 @@ function getRowJson(row) {
   return null
 }
 
+function getSortedRows(rows) {
+  return [...rows].sort((a, b) => {
+    const aCreation = toTimestamp(a?.creation)
+    const bCreation = toTimestamp(b?.creation)
+    if (aCreation !== bCreation) return bCreation - aCreation
+
+    const aIdx = Number(a?.idx || 0)
+    const bIdx = Number(b?.idx || 0)
+    return bIdx - aIdx
+  })
+}
+
 function titleize(value) {
-  return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
-}
-
-function formatValue(value) {
-  if (value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length)) {
-    return '-'
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((item) => escapeHtml(item)).join('<br>')
-  }
-
-  if (isPlainObject(value)) {
-    return escapeHtml(JSON.stringify(value))
-  }
-
-  return escapeHtml(String(value))
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+  return String(value || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 function toTimestamp(value) {
@@ -544,6 +391,10 @@ function formatDateTime(value) {
 
 function escapeId(value) {
   return String(value).replace(/[^a-zA-Z0-9_-]/g, '-')
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function escapeHtml(value) {

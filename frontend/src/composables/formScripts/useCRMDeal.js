@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { toast, createResource, LoadingIndicator } from 'frappe-ui'
+import { toast, call, createResource, LoadingIndicator } from 'frappe-ui'
 import dayjs from "dayjs"
 import { buildQuotationVersionHtml } from '@/utils/htmlFieldRenderers/quotationVersion'
 import { buildAIDataListHtml } from '@/utils/htmlFieldRenderers/aiData'
@@ -587,9 +587,9 @@ export function useCRMDeal(doc, document) {
       return
     }
 
-    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_quotation_template)}`
+    const message = doc.value.custom_quotation_template
 
-    window.open(url, "_blank");
+    logWhatsAppActivity('Quotation', message, 'custom_quotation_template')
   }
 
   async function generate_payment_template() {
@@ -615,9 +615,9 @@ export function useCRMDeal(doc, document) {
       return
     }
 
-    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_payment_link_template)}`
+    const message = doc.value.custom_payment_link_template
 
-    window.open(url, "_blank");
+    logWhatsAppActivity('Payment Link', message, 'custom_payment_link_template')
   }
 
   function room_rate_modify(row, action) {
@@ -649,9 +649,31 @@ export function useCRMDeal(doc, document) {
       return
     }
 
-    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(doc.value.custom_reminder)}`
+    const message = doc.value.custom_reminder
 
-    window.open(url, "_blank");
+    logWhatsAppActivity('Reminder', message, 'custom_reminder')
+  }
+
+  async function logWhatsAppActivity(actionType, message, sourceField) {
+    const phone = String(doc.value.mobile_no || '').replace(/\D/g, '')
+    if (!phone) {
+      toast.error('Invalid phone number')
+      return
+    }
+
+    await call('praveg.api.whatsapp_activity.create_whatsapp_activity', {
+      reference_doctype: doc.value.doctype,
+      reference_docname: doc.value.name,
+      action_type: actionType,
+      message_text: message,
+      recipient_number: phone,
+      recipient_name: doc.value.lead_name || doc.value.first_name || '',
+      source_field: sourceField,
+      status: 'Sent',
+    })
+
+    const url = `https://web.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`
+    window.open(url, '_blank')
   }
 
   const buttonHandlers = {

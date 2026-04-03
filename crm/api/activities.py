@@ -46,7 +46,7 @@ def get_deal_activities(name: str):
 	creation_text = _("created this deal")
 
 	if lead:
-		activities, calls, notes, tasks, attachments = get_lead_activities(lead)
+		activities, calls, notes, tasks, attachments, whatsapp_logs = get_lead_activities(lead)
 		creation_text = _("converted the lead to this deal")
 
 	activities.append(
@@ -158,10 +158,13 @@ def get_deal_activities(name: str):
 	tasks = tasks + get_linked_tasks(name) + get_linked_calls(name).get("tasks", [])
 	attachments = attachments + get_attachments("CRM Deal", name)
 
+	whatsapp_logs = get_linked_whatsapp_logs("CRM Deal", name)
+	activities.extend(whatsapp_logs)
+
 	activities.sort(key=lambda x: x["creation"], reverse=True)
 	activities = handle_multiple_versions(activities)
 
-	return activities, calls, notes, tasks, attachments
+	return activities, calls, notes, tasks, attachments, whatsapp_logs
 
 
 # def get_lead_activities(name: str):
@@ -536,10 +539,13 @@ def get_lead_activities(name: str):
 	tasks = get_linked_tasks(name) + get_linked_calls(name).get("tasks", [])
 	attachments = get_attachments("CRM Lead", name)
 
+	whatsapp_logs = get_linked_whatsapp_logs("CRM Lead", name)
+	activities.extend(whatsapp_logs)
+
 	activities.sort(key=lambda x: x["creation"], reverse=True)
 	activities = handle_multiple_versions(activities)
 
-	return activities, calls, notes, tasks, attachments
+	return activities, calls, notes, tasks, attachments, whatsapp_logs
 
 
 
@@ -745,3 +751,43 @@ def parse_attachment_log(html: str, type: str):
 		"file_url": a_tag["href"],
 		"is_private": is_private,
 	}
+
+def get_linked_whatsapp_logs(reference_doctype, reference_docname):
+    logs = frappe.db.get_all(
+        "Praveg Whatsapp Log",
+        filters={
+            "reference_doctype": reference_doctype,
+            "reference_docname": reference_docname,
+        },
+        fields=[
+            "name",
+            "action_type",
+            "direction",
+            "status",
+            "recipient_number",
+            "recipient_name",
+            "message_text",
+            "sent_by",
+            "logged_on",
+            "creation",
+        ],
+        order_by="logged_on desc, creation desc",
+    )
+
+    return [
+        {
+            "name": d.name,
+            "activity_type": "whatsapp_log",
+            "creation": d.logged_on or d.creation,
+            "owner": d.sent_by,
+            "data": {
+                "action_type": d.action_type,
+                "direction": d.direction,
+                "status": d.status,
+                "recipient_number": d.recipient_number,
+                "recipient_name": d.recipient_name,
+                "message_text": d.message_text,
+            },
+        }
+        for d in logs
+    ]

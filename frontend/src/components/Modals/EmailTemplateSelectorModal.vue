@@ -38,7 +38,7 @@
           class="flex h-56 cursor-pointer flex-col gap-2 rounded-lg border p-3 hover:bg-surface-gray-2"
           @click="emit('apply', template)"
         >
-          <div class="border-b pb-2 text-base font-semibold">
+          <div class="border-b pb-2 text-base font-semibold text-ink-gray-9">
             {{ template.name }}
           </div>
           <div v-if="template.subject" class="text-sm text-ink-gray-5">
