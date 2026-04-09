@@ -103,6 +103,31 @@ button.text-ink-white.bg-surface-gray-7:focus-visible {
   --outline-gray-2: #343434;
 }
 
+/* Notifications drawer should not inherit sidebar muted/hover tokens */
+[data-theme='light']
+:where(
+  .flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar
+)
+.absolute.z-20.h-screen.bg-surface-white {
+  --surface-gray-2: #f3f3f3;
+  --ink-gray-9: #171717;
+  --ink-gray-8: #383838;
+  --ink-gray-5: #7c7c7c;
+}
+
+[data-theme='dark']
+:where(
+  .flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar
+)
+.absolute.z-20.h-screen.bg-surface-white {
+  --surface-gray-2: #2b2b2b;
+  --ink-gray-9: #f8f8f8;
+  --ink-gray-8: #d4d4d4;
+  --ink-gray-5: #808080;
+}
+
 @layer components {
   .prose-f {
     @apply break-all

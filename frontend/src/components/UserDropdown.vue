@@ -179,5 +179,5 @@ function getStandardItem(item) {
   }
 }
 
-const isLightTheme = computed(() => theme.value === 'light')
+const isLightTheme = computed(() => currentTheme.value === 'light')
 </script>
