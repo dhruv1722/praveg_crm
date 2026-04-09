@@ -2,7 +2,7 @@
   <Dropdown :options="dropdownItems" v-bind="$attrs">
     <template #default="{ open }">
       <button
-        class="flex h-12 items-center rounded-md py-2 duration-300 ease-in-out"
+        class="group flex h-12 items-center rounded-md py-2 duration-300 ease-in-out"
         :class="
           isCollapsed
             ? 'w-auto px-0'
@@ -20,12 +20,20 @@
               : 'ml-2 w-auto opacity-100'
           "
         >
-          <div
+          <!-- <div
             class="text-base font-medium leading-none text-ink-gray-9 truncate"
-          >
+          > -->
+          <div class="text-base font-medium leading-none truncate transition-colors duration-300" :class="[
+            isLightTheme && !open ? 'text-white group-hover:text-ink-gray-9' : 'text-ink-gray-9',
+            open ? '!text-ink-gray-9' : '',
+          ]">
             {{ __(brand.name || 'CRM') }}
           </div>
-          <div class="mt-1 text-sm leading-none text-ink-gray-7 truncate">
+          <!-- <div class="mt-1 text-sm leading-none text-ink-gray-7 truncate"> -->
+          <div class="mt-1 text-sm leading-none truncate transition-colors duration-300" :class="[
+            isLightTheme && !open ? 'text-white/70 group-hover:text-ink-gray-9' : 'text-ink-gray-7',
+            open ? '!text-ink-gray-7' : '',
+          ]">
             {{ user.full_name }}
           </div>
         </div>
@@ -37,11 +45,15 @@
               : 'ml-2 w-auto opacity-100'
           "
         >
-          <FeatherIcon
+          <!-- <FeatherIcon
             name="chevron-down"
             class="size-4 text-ink-gray-5"
             aria-hidden="true"
-          />
+          /> -->
+          <FeatherIcon name="chevron-down" class="size-4 transition-colors duration-300" :class="[
+            isLightTheme && !open ? 'text-white/70 group-hover:text-ink-gray-7' : 'text-ink-gray-5',
+            open ? '!text-ink-gray-7' : '',
+          ]" aria-hidden="true" />
         </div>
       </button>
     </template>
@@ -166,4 +178,6 @@ function getStandardItem(item) {
       }
   }
 }
+
+const isLightTheme = computed(() => theme.value === 'light')
 </script>

@@ -623,16 +623,27 @@ export function useCRMLead(doc, document) {
   function room_rate_modify(row, action) {
     // adjust this name if your field is different
     const rate_modifier = toNumber(row.rate_modifier ?? 0)
-
     const current_room_rate_per_night = toNumber(row.room_rate_per_night)
+    const original_room_rate_per_night =
+      row.__rateChangeOriginalRate === undefined
+        ? current_room_rate_per_night
+        : toNumber(row.__rateChangeOriginalRate)
+
+    let modified_room_rate_per_night = current_room_rate_per_night
 
     if (action === "plus") {
-      row.room_rate_per_night = current_room_rate_per_night + rate_modifier
+      modified_room_rate_per_night = current_room_rate_per_night + rate_modifier
     } else {
-      row.room_rate_per_night = Math.max(0, current_room_rate_per_night - rate_modifier)
+      modified_room_rate_per_night = Math.max(0, current_room_rate_per_night - rate_modifier)
     }
 
-    row.__rateModifierButtonClicked = true
+    row.room_rate_per_night = modified_room_rate_per_night
+    row.__rateModifierButtonClicked =
+      original_room_rate_per_night !== modified_room_rate_per_night
+    row.__rateChangeOriginalRate = original_room_rate_per_night
+    row.__rateChangeModifiedRate = modified_room_rate_per_night
+    row.__rateChangeDifference = modified_room_rate_per_night - original_room_rate_per_night
+
     // recalc row totals and overall totals
     calculateChildRow(row)
   }

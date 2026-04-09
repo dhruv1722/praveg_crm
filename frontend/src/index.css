@@ -1,5 +1,108 @@
 @import 'frappe-ui/style.css';
 
+/* Brand palette from your sample image */
+:root,
+[data-theme='light'] {
+  --prv-sidebar-bg: #0f2f72;          /* deep navy */
+  --prv-sidebar-hover-bg: #163c86;    /* hover */
+  --prv-sidebar-active-bg: #167f86;   /* teal active item */
+  --prv-sidebar-text: #eaf1ff;        /* main text/icons */
+  --prv-sidebar-text-muted: #9cb0d8;  /* muted text */
+  --prv-sidebar-border: #21478e;
+  --prv-sidebar-ring: #2a5bb3;
+
+  --prv-action-bg: #f28c28;
+  --prv-action-hover: #de7a1a;
+  --prv-action-active: #c8650f;
+  --prv-action-ring: #f7b267;
+  --prv-action-text: #ffffff;
+}
+
+[data-theme='dark'] {
+  --prv-sidebar-bg: #0a1f4d;          /* darker navy */
+  --prv-sidebar-hover-bg: #102a66;
+  --prv-sidebar-active-bg: #1a8f98;
+  --prv-sidebar-text: #e6eeff;
+  --prv-sidebar-text-muted: #8ea3cf;
+  --prv-sidebar-border: #1b356f;
+  --prv-sidebar-ring: #2956a8;
+
+  --prv-action-bg: #ff9c34;
+  --prv-action-hover: #f08a22;
+  --prv-action-active: #da7512;
+  --prv-action-ring: #ffb866;
+  --prv-action-text: #0f172a;
+}
+
+/* Scope override ONLY to sidebar containers (desktop + mobile) */
+:where(
+  .flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar
+) {
+  --surface-menu-bar: var(--prv-sidebar-bg);
+  --surface-selected: var(--prv-sidebar-active-bg);
+  --surface-gray-2: var(--prv-sidebar-hover-bg);
+
+  --ink-gray-8: var(--prv-sidebar-text);
+  --ink-gray-7: var(--prv-sidebar-text-muted);
+  --ink-gray-6: var(--prv-sidebar-text-muted);
+  --ink-gray-5: var(--prv-sidebar-text-muted);
+
+  --outline-gray-2: var(--prv-sidebar-border);
+  --outline-gray-3: var(--prv-sidebar-ring);
+
+  border-color: var(--prv-sidebar-border) !important;
+}
+
+/* frappe-ui Button.vue solid-gray output: text-ink-white bg-surface-gray-7 */
+button.text-ink-white.bg-surface-gray-7:not(:disabled) {
+  background-color: var(--prv-action-bg) !important;
+  color: var(--prv-action-text) !important;
+}
+
+button.text-ink-white.bg-surface-gray-7:not(:disabled):hover {
+  background-color: var(--prv-action-hover) !important;
+}
+
+button.text-ink-white.bg-surface-gray-7:not(:disabled):active {
+  background-color: var(--prv-action-active) !important;
+}
+
+button.text-ink-white.bg-surface-gray-7:focus-visible {
+  box-shadow: 0 0 0 2px var(--prv-action-ring) !important;
+}
+
+/* Help/Onboarding side panel token reset (prevents sidebar token inheritance) */
+[data-theme='light'] .fixed.z-50.right-0.w-80.bg-surface-modal {
+  --surface-modal: #ffffff;
+  --surface-gray-1: #f8f8f8;
+  --surface-gray-2: #f3f3f3;
+  --surface-gray-3: #ededed;
+
+  --ink-gray-9: #171717;
+  --ink-gray-8: #383838;
+  --ink-gray-7: #525252;
+  --ink-gray-6: #525252;
+  --ink-gray-5: #7c7c7c;
+
+  --outline-gray-2: #e2e2e2;
+}
+
+[data-theme='dark'] .fixed.z-50.right-0.w-80.bg-surface-modal {
+  --surface-modal: #232323;
+  --surface-gray-1: #232323;
+  --surface-gray-2: #2b2b2b;
+  --surface-gray-3: #343434;
+
+  --ink-gray-9: #f8f8f8;
+  --ink-gray-8: #d4d4d4;
+  --ink-gray-7: #afafaf;
+  --ink-gray-6: #999999;
+  --ink-gray-5: #808080;
+
+  --outline-gray-2: #343434;
+}
+
 @layer components {
   .prose-f {
     @apply break-all

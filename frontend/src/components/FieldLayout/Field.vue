@@ -46,7 +46,7 @@
       :description="field.description" />
     <Grid v-else-if="field.fieldtype === 'Table'" v-model="data[field.fieldname]" v-model:parent="data"
       :doctype="field.options" :parentDoctype="doctype" :parentFieldname="field.fieldname" />
-    <FormControl v-else-if="field.fieldtype === 'Select'" type="select" class="form-control"
+    <FormControl v-else-if="field.fieldtype === 'Select'" :disabled="Boolean(field.read_only)" type="select" class="form-control"
       :class="field.prefix ? 'prefix' : ''" :options="field.options" v-model="data[field.fieldname]"
       @change="(e) => fieldChange(e.target.value, field)" :placeholder="getPlaceholder(field)"
       :description="field.description">
@@ -70,7 +70,7 @@
       </label>
     </div>
     <div class="flex gap-1" v-else-if="['Link', 'Dynamic Link'].includes(field.fieldtype)">
-      <Link class="form-control flex-1 truncate" :value="data[field.fieldname]" :doctype="field.fieldtype == 'Link' ? field.options : data[field.options]
+      <Link class="form-control flex-1 truncate" :disabled="Boolean(field.read_only)" :value="data[field.fieldname]" :doctype="field.fieldtype == 'Link' ? field.options : data[field.options]
         " :filters="field.filters" :row="isGridRow ? data : null" @change="(v) => fieldChange(v, field)"
         :placeholder="getPlaceholder(field)" :onCreate="field.create" />
       <Button v-if="data[field.fieldname] && field.edit" class="shrink-0" :label="__('Edit')" :iconLeft="EditIcon"
@@ -85,7 +85,7 @@
       :disabled="Boolean(field.read_only)" @click="handleButtonClick(field)" />
     <!-- // custom code -->
 
-    <Link v-else-if="field.fieldtype === 'User'" class="form-control text-ink-gray-5"
+    <Link v-else-if="field.fieldtype === 'User'" :disabled="Boolean(field.read_only)" class="form-control text-ink-gray-5"
       :value="data[field.fieldname] && getUser(data[field.fieldname]).full_name" :doctype="field.options"
       :filters="field.filters" @change="(v) => fieldChange(v, field)" :placeholder="getPlaceholder(field)"
       :hideMe="true">
@@ -106,20 +106,20 @@
     <Combobox v-else-if="field.fieldtype === 'Autocomplete'" v-model="data[field.fieldname]"
       @update:modelValue="(v) => fieldChange(v, field, data)" :options="getOptions(field.options)"
       :placeholder="getPlaceholder(field)" :disabled="Boolean(field.read_only)" />
-    <TimePicker v-else-if="field.fieldtype === 'Time'" :value="data[field.fieldname]"
+    <TimePicker v-else-if="field.fieldtype === 'Time'" :disabled="Boolean(field.read_only)" :value="data[field.fieldname]"
       :format="getFormat('', '', false, true, false)" :placeholder="getPlaceholder(field)" input-class="border-none"
       @change="(v) => fieldChange(v, field)" />
-    <DateTimePicker v-else-if="field.fieldtype === 'Datetime'" :value="data[field.fieldname]"
-      :formatter="(date) => getFormat(date, '', true, true)" :placeholder="getPlaceholder(field)"
+    <DateTimePicker v-else-if="field.fieldtype === 'Datetime'" :disabled="Boolean(field.read_only)" :value="data[field.fieldname]"
+      :formatter="(date) => getFormat(date, '', true, true)" :minDateTime="dayjs().format('YYYY-MM-DD HH:mm:ss')" :placeholder="getPlaceholder(field)"
       input-class="border-none" @change="(v) => fieldChange(v, field)" />
-    <DatePicker v-else-if="field.fieldtype === 'Date'" :value="data[field.fieldname]"
+    <DatePicker v-else-if="field.fieldtype === 'Date'" :disabled="Boolean(field.read_only)" :value="data[field.fieldname]"
       :formatter="(date) => getFormat(date, '', true)" :format="field.date_format || 'DD-MM-YYYY'"
       :placeholder="getPlaceholder(field)" input-class="border-none" @change="(v) => fieldChange(v, field)" />
     <FormControl v-else-if="
       ['Small Text', 'Text', 'Long Text', 'Code'].includes(field.fieldtype)
-    " type="textarea" :rows="getRows(field)" :value="data[field.fieldname]" :placeholder="getPlaceholder(field)"
+    " type="textarea" :rows="getRows(field)" :disabled="Boolean(field.read_only)" :value="data[field.fieldname]" :placeholder="getPlaceholder(field)"
       :description="field.description" @change="fieldChange($event.target.value, field)" />
-    <Password v-else-if="field.fieldtype === 'Password'" :value="data[field.fieldname]"
+    <Password v-else-if="field.fieldtype === 'Password'" :disabled="Boolean(field.read_only)" :value="data[field.fieldname]"
       :placeholder="getPlaceholder(field)" :description="field.description"
       @change="fieldChange($event.target.value, field)" />
     <FormattedInput v-else-if="field.fieldtype === 'Int'" type="text" :placeholder="getPlaceholder(field)"
