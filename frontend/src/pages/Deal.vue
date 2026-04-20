@@ -24,18 +24,18 @@
   </LayoutHeader>
   <div v-if="doc.name" class="flex h-full overflow-hidden">
     <Tabs as="div" v-model="tabIndex" :tabs="tabs"
-      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tablist']]:px-5 [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow">
+      class="prv-activity-tabs flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tablist']]:px-5 [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow">
       <template #tab-panel>
         <Activities ref="activities" doctype="CRM Deal" :docname="dealId" :tabs="tabs" v-model:reload="reload"
           v-model:tabIndex="tabIndex" @beforeSave="beforeStatusChange" @afterSave="reloadAssignees" />
       </template>
     </Tabs>
     <Resizer side="right" class="flex flex-col justify-between border-l">
-      <div class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
+      <div class="prv-doc-id-bar flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
         @click="copyToClipboard(dealId)">
         {{ __(dealId) }}
       </div>
-      <div class="flex items-center justify-start gap-5 border-b p-5">
+      <div class="prv-profile-card flex items-center justify-start gap-5 border-b p-5">
         <Tooltip :text="__('Organization logo')">
           <div class="group relative size-12">
             <Avatar size="3xl" class="size-12" :label="title" :image="organization?.organization_logo" />
