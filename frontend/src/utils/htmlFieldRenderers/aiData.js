@@ -1,5 +1,54 @@
 import { formatDate } from '@/utils'
 
+/**
+ * @deprecated
+ * Prefer the raw JSON renderer instead of schema/coverage-based rendering.
+ */
+
+const ALLOWED_SECTIONS = ['processing', 'ai_insights', 'transcript']
+
+const EXPECTED_PERSON_FIELDS = [
+  { key: 'mobile_no', label: 'Mobile No', paths: [['person', 'mobile_no']] },
+  { key: 'user_type', label: 'User Type', paths: [['person', 'user_type']] },
+  { key: 'salutation', label: 'Salutation', paths: [['person', 'salutation']] },
+  { key: 'first_name', label: 'First Name', paths: [['person', 'first_name']] },
+  { key: 'last_name', label: 'Last Name', paths: [['person', 'last_name']] },
+  { key: 'email', label: 'Email', paths: [['person', 'email']] },
+  { key: 'city', label: 'City', paths: [['person', 'city']] },
+  { key: 'state', label: 'State', paths: [['person', 'state']] },
+  { key: 'country', label: 'Country', paths: [['person', 'country']] },
+  { key: 'pincode', label: 'Pincode', paths: [['person', 'pincode']] },
+]
+
+const EXPECTED_GUEST_ROWS = [
+  {
+    type: 'Room',
+    fields: [
+      { key: 'room_category', label: 'Room Category' },
+      { key: 'rate_type', label: 'Rate Type' },
+      { key: 'no_of_rooms', label: 'No Of Rooms' },
+      { key: 'extra_beds', label: 'Extra Beds' },
+      { key: 'adult', label: 'Adult' },
+      { key: 'child', label: 'Child' },
+    ],
+  },
+  {
+    type: 'Meal',
+    fields: [
+      { key: 'meal_plan', label: 'Meal Plan' },
+      { key: 'number_of_meal_persons', label: 'Number Of Meal Persons' },
+    ],
+  },
+  {
+    type: 'Package',
+    fields: [
+      { key: 'package', label: 'Package' },
+      { key: 'total_package', label: 'Total Package' },
+    ],
+  },
+]
+
+
 export function buildAIDataListHtml(doc) {
   const rows = getSortedRows(doc?.custom_ai_data_table || [])
 
@@ -8,35 +57,38 @@ export function buildAIDataListHtml(doc) {
     'border-collapse:collapse',
     'table-layout:fixed',
     'color:var(--ink-gray-8)',
-    'font-size:13px',
+    'font-size:13px;',
   ].join(';')
 
   const cellStyle = [
     'border:1px solid var(--outline-gray-2)',
     'padding:6px 8px',
     'vertical-align:middle',
-    'color:var(--ink-gray-8)',
+    'color:var(--ink-gray-8);',
   ].join(';')
 
   const headerStyle = [
     cellStyle,
     'background:var(--surface-gray-2)',
     'font-weight:600',
-    'text-align:center',
+    'text-align:center;',
   ].join(';')
 
   const body = rows.length
     ? rows
-        .map((row, index) => {
-          const dialogId = getDialogId(row, index)
-          const rowNumber = rows.length - index
-          const detailHtml = buildAIDataDetailTable(row?.ai_data_json)
+      .map((row, index) => {
+        const dialogId = getDialogId(row, index)
+        const rowNumber = rows.length - index
+        const data = getRowJson(row)
+        const coverage = getPayloadCoverage(data)
+        const detailHtml = buildAIDataDetailTable(data)
 
-          return `
+        return `
             <tr>
-              <td style="${cellStyle}; text-align:center;">${escapeHtml(rowNumber)}</td>
+              <td style="${cellStyle} text-align:center;">${escapeHtml(rowNumber)}</td>
               <td style="${cellStyle}">${escapeHtml(formatDateTime(row.creation))}</td>
-              <td style="${cellStyle}; text-align:center;">
+              <td style="${cellStyle} text-align:center;">${escapeHtml(`${coverage.ratio}%`)}</td>
+              <td style="${cellStyle} text-align:center;">
                 <button
                   type="button"
                   onclick="document.getElementById('${dialogId}').showModal()"
@@ -58,8 +110,8 @@ export function buildAIDataListHtml(doc) {
                 <dialog
                   id="${dialogId}"
                   style="
-                    width:min(1040px, 96vw);
-                    height:min(84vh, 920px);
+                    width:min(980px, 94vw);
+                    height:min(82vh, 900px);
                     border:1px solid var(--outline-gray-2);
                     border-radius:12px;
                     padding:0;
@@ -68,11 +120,11 @@ export function buildAIDataListHtml(doc) {
                     overflow:hidden;
                   "
                 >
-                  <div style="padding:16px 18px; border-bottom:1px solid var(--outline-gray-2); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                  <div style="padding:16px 18px;border-bottom:1px solid var(--outline-gray-2);display:flex;align-items:center;justify-content:space-between;gap:12px;">
                     <div>
-                      <div style="font-size:16px; font-weight:600;">AI Data #${escapeHtml(rowNumber)}</div>
-                      <div style="font-size:12px; color:var(--ink-gray-6); margin-top:4px;">
-                        JSON rendered as table
+                      <div style="font-size:16px;font-weight:600;">AI Data #${escapeHtml(rowNumber)}</div>
+                      <div style="font-size:12px;color:var(--ink-gray-6);margin-top:4px;">
+                        Field Coverage: ${escapeHtml(`${coverage.receivedCount}/${coverage.totalCount} (${coverage.ratio}%)`)}
                       </div>
                     </div>
                     <button
@@ -94,8 +146,9 @@ export function buildAIDataListHtml(doc) {
                   <div
                     style="
                       padding:16px 18px;
-                      height:calc(84vh - 70px);
-                      overflow:auto;
+                      height:calc(82vh - 70px);
+                      overflow-y:auto;
+                      overflow-x:hidden;
                       box-sizing:border-box;
                     "
                   >
@@ -105,11 +158,11 @@ export function buildAIDataListHtml(doc) {
               </td>
             </tr>
           `
-        })
-        .join('')
+      })
+      .join('')
     : `
       <tr>
-        <td style="${cellStyle}; text-align:center;" colspan="3">
+        <td style="${cellStyle} text-align:center;" colspan="4">
           No AI Data found
         </td>
       </tr>
@@ -118,14 +171,16 @@ export function buildAIDataListHtml(doc) {
   return `
     <table style="${tableStyle}">
       <colgroup>
-        <col style="width:12%">
-        <col style="width:auto">
+        <col style="width:10%">
+        <col style="width:34%">
+        <col style="width:18%">
         <col style="width:96px">
       </colgroup>
       <tbody>
         <tr>
           <th style="${headerStyle}">No</th>
           <th style="${headerStyle}">Received At</th>
+          <th style="${headerStyle}">Coverage</th>
           <th style="${headerStyle}">Open</th>
         </tr>
         ${body}
@@ -134,214 +189,374 @@ export function buildAIDataListHtml(doc) {
   `
 }
 
-export function buildAIDataDetailTable(rawValue) {
-  const parsed = parseJsonSafely(rawValue)
-  const content = getRenderableValue(rawValue, parsed)
 
-  if (content === null || content === undefined || content === '') {
+export function buildAIDataDetailTable(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return `
-      <div style="padding:12px; border:1px solid var(--outline-gray-2); border-radius:8px;">
+      <div style="padding:12px;border:1px solid var(--outline-gray-2);border-radius:8px;">
         No AI data available
       </div>
     `
   }
 
+  const coverage = getPayloadCoverage(data)
+
   return `
-    <div style="display:grid; gap:12px;">
-      <div style="font-size:14px; font-weight:600;">AI Data</div>
-      ${renderJsonNode(content, 0)}
+    <div style="display:grid;gap:16px;">
+      ${buildCoverageSummaryHtml(coverage)}
+      ${buildPayloadComparisonTable(coverage.groups)}
+      ${buildAIStructuredDataTable(data)}
     </div>
   `
 }
 
-function getRenderableValue(rawValue, parsedValue) {
-  if (parsedValue !== null) return parsedValue
-  if (typeof rawValue === 'string' && rawValue.trim()) return rawValue.trim()
-  if (rawValue && typeof rawValue === 'object') return rawValue
+
+function buildAIStructuredDataTable(data) {
+  const tableStyle = [
+    'width:100%',
+    'border-collapse:collapse',
+    'color:var(--ink-gray-8)',
+    'font-size:13px;',
+  ].join(';')
+
+  const cellStyle = [
+    'border:1px solid var(--outline-gray-2)',
+    'padding:6px 8px',
+    'vertical-align:top',
+    'color:var(--ink-gray-8);',
+  ].join(';')
+
+  const labelCellStyle = [cellStyle, 'text-align:left', 'font-weight:600;'].join(';')
+  const valueCellStyle = [
+    cellStyle,
+    'text-align:left',
+    'white-space:pre-wrap',
+    'word-break:break-word;',
+  ].join(';')
+
+  const sectionStyle = [
+    'text-align:center',
+    'font-weight:600',
+    'background:var(--surface-gray-2);',
+  ].join(';')
+
+  const subsectionStyle = [
+    'text-align:center',
+    'font-weight:600',
+    'background:var(--surface-gray-2);',
+  ].join(';')
+
+  const rows = []
+
+  for (const section of ALLOWED_SECTIONS) {
+    const sectionData = data?.[section]
+    if (!isPlainObject(sectionData)) continue
+
+    rows.push(
+      `<tr><th colspan="2" style="${cellStyle}${sectionStyle}">${escapeHtml(titleize(section))}</th></tr>`,
+    )
+
+    for (const [key, value] of Object.entries(sectionData)) {
+      if (isPlainObject(value)) {
+        rows.push(
+          `<tr><th colspan="2" style="${cellStyle}${subsectionStyle}">${escapeHtml(titleize(key))}</th></tr>`,
+        )
+
+        for (const [subKey, subValue] of Object.entries(value)) {
+          rows.push(
+            `<tr>
+              <td style="${labelCellStyle}">${escapeHtml(titleize(subKey))}</td>
+              <td style="${valueCellStyle}">${formatValue(subValue)}</td>
+            </tr>`,
+          )
+        }
+      } else {
+        rows.push(
+          `<tr>
+            <td style="${labelCellStyle}">${escapeHtml(titleize(key))}</td>
+            <td style="${valueCellStyle}">${formatValue(value)}</td>
+          </tr>`,
+        )
+      }
+    }
+  }
+
+  if (!rows.length) {
+    rows.push(
+      `<tr><td style="${cellStyle} text-align:center;" colspan="2">No AI Data available</td></tr>`,
+    )
+  }
+
+  return `
+    <div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">AI Sections</div>
+      <table style="${tableStyle}">
+        <tbody>${rows.join('')}</tbody>
+      </table>
+    </div>
+  `
+}
+
+
+function getPayloadCoverage(data) {
+  const personRows = EXPECTED_PERSON_FIELDS.map((field) => {
+    const value = getFirstAvailableValue(data, field.paths)
+    const received = hasMeaningfulValue(value)
+
+    return {
+      key: `person_${field.key}`,
+      label: field.label,
+      received,
+      value,
+    }
+  })
+
+  const personGroup = buildCoverageGroup('Person', personRows)
+  const guestGroups = getGuestCoverageGroups(data)
+  const groups = [personGroup, ...guestGroups]
+  const rows = groups.flatMap((group) => group.rows)
+
+  const totalCount = groups.reduce((count, group) => count + group.totalCount, 0)
+  const receivedCount = groups.reduce((count, group) => count + group.receivedCount, 0)
+  const ratio = totalCount ? Math.round((receivedCount / totalCount) * 100) : 0
+
+  return {
+    groups,
+    rows,
+    totalCount,
+    receivedCount,
+    ratio,
+  }
+}
+
+function getGuestCoverageGroups(data) {
+  const guestRows = Array.isArray(data?.booking?.guest)
+    ? data.booking.guest
+    : Array.isArray(data?.guest)
+      ? data.guest
+      : []
+
+  const coverageGroups = []
+
+  for (const guestConfig of EXPECTED_GUEST_ROWS) {
+    const matchingRows = findGuestRowsByType(guestRows, guestConfig.type)
+    const rowsToCheck = matchingRows.length ? matchingRows : [null]
+
+    rowsToCheck.forEach((guestRow, index) => {
+      const suffix = rowsToCheck.length > 1 ? ` #${index + 1}` : ''
+      const groupLabel = `${guestConfig.type}${suffix}`
+      const groupRows = guestConfig.fields.map((field) => {
+        const value = guestRow?.[field.key]
+        const received = hasMeaningfulValue(value)
+
+        return {
+          key: `guest_${guestConfig.type.toLowerCase()}_${index + 1}_${field.key}`,
+          label: field.label,
+          received,
+          value,
+        }
+      })
+
+      coverageGroups.push(buildCoverageGroup(groupLabel, groupRows))
+    })
+  }
+
+  return coverageGroups
+}
+
+function findGuestRowsByType(rows, type) {
+  return rows.filter((row) => String(row?.type || '').trim().toLowerCase() === type.toLowerCase())
+}
+
+function buildCoverageGroup(label, rows) {
+  const totalCount = rows.length
+  const receivedCount = rows.filter((row) => row.received).length
+  const ratio = totalCount ? Math.round((receivedCount / totalCount) * 100) : 0
+
+  return {
+    label,
+    rows,
+    totalCount,
+    receivedCount,
+    ratio,
+  }
+}
+
+
+
+function getFirstAvailableValue(source, paths) {
+  for (const path of paths) {
+    const value = getValueByPath(source, path)
+    if (hasMeaningfulValue(value)) return value
+  }
+
   return null
 }
 
-function renderJsonNode(value, depth = 0) {
-  if (Array.isArray(value)) {
-    return renderArrayTable(value, depth)
+function getValueByPath(source, path) {
+  let current = source
+
+  for (const segment of path) {
+    if (!current || typeof current !== 'object') return undefined
+    current = current[segment]
   }
 
-  if (isPlainObject(value)) {
-    return renderObjectTable(value, depth)
-  }
-
-  return renderPrimitiveBlock(value)
+  return current
 }
 
-function renderObjectTable(obj, depth = 0) {
-  const entries = Object.entries(obj || {})
+function hasMeaningfulValue(value) {
+  if (value === null || value === undefined) return false
+  if (typeof value === 'string') return value.trim() !== ''
+  if (Array.isArray(value)) return value.length > 0
+  if (isPlainObject(value)) return Object.keys(value).length > 0
+  return true
+}
 
-  if (!entries.length) {
-    return renderPrimitiveBlock('-')
-  }
-
-  const rows = entries
-    .map(([key, value]) => {
-      const label = titleize(key)
-
-      if (isComplexValue(value)) {
-        return `
-          <tr>
-            <th colspan="2" style="${getSectionCellStyle(depth)}">${escapeHtml(label)}</th>
-          </tr>
-          <tr>
-            <td colspan="2" style="${getValueWrapperStyle()}">
-              ${renderJsonNode(value, depth + 1)}
-            </td>
-          </tr>
-        `
-      }
-
+function buildCoverageSummaryHtml(coverage) {
+  const keyWiseRows = coverage.groups
+    .map((group) => {
       return `
         <tr>
-          <td style="${getLabelCellStyle()}">${escapeHtml(label)}</td>
-          <td style="${getValueCellStyle()}">${formatPrimitive(value)}</td>
+          <td style="border:1px solid var(--outline-gray-2);padding:6px 8px;font-weight:600;">${escapeHtml(group.label)}</td>
+          <td style="border:1px solid var(--outline-gray-2);padding:6px 8px;text-align:center;">${escapeHtml(`${group.receivedCount}/${group.totalCount}`)}</td>
+          <td style="border:1px solid var(--outline-gray-2);padding:6px 8px;text-align:center;">${escapeHtml(`${group.ratio}%`)}</td>
         </tr>
       `
     })
     .join('')
 
   return `
-    <table style="${getNestedTableStyle(depth)}">
-      <tbody>${rows}</tbody>
-    </table>
-  `
-}
-
-function renderArrayTable(items, depth = 0) {
-  if (!items.length) {
-    return renderPrimitiveBlock('[]')
-  }
-
-  const rows = items
-    .map((item, index) => {
-      const itemLabel = `Item ${index + 1}`
-
-      if (isComplexValue(item)) {
-        return `
-          <tr>
-            <th colspan="2" style="${getSectionCellStyle(depth)}">${escapeHtml(itemLabel)}</th>
-          </tr>
-          <tr>
-            <td colspan="2" style="${getValueWrapperStyle()}">
-              ${renderJsonNode(item, depth + 1)}
-            </td>
-          </tr>
-        `
-      }
-
-      return `
-        <tr>
-          <td style="${getLabelCellStyle()}">${escapeHtml(itemLabel)}</td>
-          <td style="${getValueCellStyle()}">${formatPrimitive(item)}</td>
-        </tr>
-      `
-    })
-    .join('')
-
-  return `
-    <table style="${getNestedTableStyle(depth)}">
-      <tbody>${rows}</tbody>
-    </table>
-  `
-}
-
-function renderPrimitiveBlock(value) {
-  return `
-    <div
-      style="
-        padding:10px 12px;
-        border:1px solid var(--outline-gray-2);
-        border-radius:8px;
-        background:var(--surface-gray-1);
-        white-space:pre-wrap;
-        word-break:break-word;
-        text-align:left;
-      "
-    >
-      ${formatPrimitive(value)}
+    <div style="padding:12px 14px;border:1px solid var(--outline-gray-2);border-radius:8px;background:var(--surface-gray-1);">
+      <div style="font-size:14px;font-weight:600;">Payload Coverage Summary</div>
+      <div style="margin-top:6px;font-size:13px;color:var(--ink-gray-7);">
+        ${escapeHtml(`${coverage.receivedCount} of ${coverage.totalCount} expected fields received`)}
+      </div>
+      <div style="margin-top:4px;font-size:18px;font-weight:700;color:var(--ink-blue-3);">
+        ${escapeHtml(`${coverage.ratio}%`)}
+      </div>
+      <div style="margin-top:10px;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;color:var(--ink-gray-8);">
+          <tbody>
+            <tr>
+              <th style="border:1px solid var(--outline-gray-2);padding:6px 8px;background:var(--surface-gray-2);text-align:center;">Key</th>
+              <th style="border:1px solid var(--outline-gray-2);padding:6px 8px;background:var(--surface-gray-2);text-align:center;">Received</th>
+              <th style="border:1px solid var(--outline-gray-2);padding:6px 8px;background:var(--surface-gray-2);text-align:center;">Coverage</th>
+            </tr>
+            ${keyWiseRows}
+          </tbody>
+        </table>
+      </div>
     </div>
   `
 }
 
-function formatPrimitive(value) {
-  if (value === null || value === undefined || value === '') return '-'
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+function buildPayloadComparisonTable(groups) {
+  const tableStyle = [
+    'width:100%',
+    'border-collapse:collapse',
+    'color:var(--ink-gray-8)',
+    'font-size:13px;',
+  ].join(';')
+
+  const cellStyle = [
+    'border:1px solid var(--outline-gray-2)',
+    'padding:6px 8px',
+    'vertical-align:top',
+    'color:var(--ink-gray-8);',
+  ].join(';')
+
+  const headerStyle = [
+    cellStyle,
+    'background:var(--surface-gray-2)',
+    'font-weight:600',
+    'text-align:center;',
+  ].join(';')
+
+  const sectionStyle = [
+    cellStyle,
+    'background:var(--surface-gray-2)',
+    'font-weight:600',
+    'text-align:left;',
+  ].join(';')
+
+  const body = groups
+    .map((group) => {
+      const groupRows = group.rows
+        .map((row) => {
+          return `
+            <tr>
+              <td style="${cellStyle} font-weight:600;">${escapeHtml(row.label)}</td>
+              <td style="${cellStyle}">${row.received ? formatCoverageValue(row.key, row.value) : '-'}</td>
+              <td style="${cellStyle} text-align:center;">${row.received ? '-' : 'Yes'}</td>
+            </tr>
+          `
+        })
+        .join('')
+
+      return `
+        <tr>
+          <td colspan="3" style="${sectionStyle}">
+            ${escapeHtml(`${group.label} (${group.receivedCount}/${group.totalCount} - ${group.ratio}%)`)}
+          </td>
+        </tr>
+        ${groupRows}
+      `
+    })
+    .join('')
+
+  return `
+    <div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Expected Field Comparison</div>
+      <table style="${tableStyle}">
+        <colgroup>
+          <col style="width:28%">
+          <col style="width:52%">
+          <col style="width:20%">
+        </colgroup>
+        <tbody>
+          <tr>
+            <th style="${headerStyle}">Field</th>
+            <th style="${headerStyle}">Received</th>
+            <th style="${headerStyle}">Not Received</th>
+          </tr>
+          ${body}
+        </tbody>
+      </table>
+    </div>
+  `
+}
+
+function formatCoverageValue(fieldKey, value) {
+  if (!hasMeaningfulValue(value)) return '-'
+
+  if (Array.isArray(value)) {
+    return value.map((item) => escapeHtml(String(item))).join('<br>')
+  }
+
+  if (isPlainObject(value)) {
+    return escapeHtml(JSON.stringify(value))
+  }
+
   return escapeHtml(String(value))
 }
 
-function isComplexValue(value) {
-  return Array.isArray(value) || isPlainObject(value)
+
+
+function getSortedRows(rows) {
+  return [...rows].sort((a, b) => {
+    const aCreation = toTimestamp(a?.creation)
+    const bCreation = toTimestamp(b?.creation)
+    if (aCreation !== bCreation) return bCreation - aCreation
+
+    const aIdx = Number(a?.idx || 0)
+    const bIdx = Number(b?.idx || 0)
+    return bIdx - aIdx
+  })
 }
 
-function getNestedTableStyle(depth = 0) {
-  const margin = depth === 0 ? '0' : '4px 0 0'
-  return [
-    'width:100%',
-    'border-collapse:collapse',
-    'table-layout:fixed',
-    'font-size:13px',
-    'color:var(--ink-gray-8)',
-    `margin:${margin}`,
-  ].join(';')
-}
+function getRowJson(row) {
+  const value = row?.ai_data_json
 
-function getLabelCellStyle() {
-  return [
-    'width:28%',
-    'border:1px solid var(--outline-gray-2)',
-    'padding:8px 10px',
-    'vertical-align:top',
-    'font-weight:600',
-    'background:var(--surface-gray-1)',
-    'text-align:left',
-    'word-break:break-word',
-  ].join(';')
-}
-
-function getValueCellStyle() {
-  return [
-    'border:1px solid var(--outline-gray-2)',
-    'padding:8px 10px',
-    'vertical-align:top',
-    'text-align:left',
-    'white-space:pre-wrap',
-    'word-break:break-word',
-  ].join(';')
-}
-
-function getValueWrapperStyle() {
-  return [
-    'border:1px solid var(--outline-gray-2)',
-    'padding:8px',
-    'vertical-align:top',
-    'text-align:left',
-  ].join(';')
-}
-
-function getSectionCellStyle(depth = 0) {
-  const backgrounds = [
-    'var(--surface-gray-2)',
-    'var(--surface-gray-1)',
-    'var(--surface-gray-2)',
-  ]
-
-  return [
-    'border:1px solid var(--outline-gray-2)',
-    'padding:8px 10px',
-    'text-align:left',
-    'font-weight:700',
-    `background:${backgrounds[depth % backgrounds.length]}`,
-    'word-break:break-word',
-  ].join(';')
-}
-
-function parseJsonSafely(value) {
   if (typeof value === 'string') {
     try {
       return JSON.parse(value)
@@ -357,22 +572,28 @@ function parseJsonSafely(value) {
   return null
 }
 
-function getSortedRows(rows) {
-  return [...rows].sort((a, b) => {
-    const aCreation = toTimestamp(a?.creation)
-    const bCreation = toTimestamp(b?.creation)
-    if (aCreation !== bCreation) return bCreation - aCreation
-
-    const aIdx = Number(a?.idx || 0)
-    const bIdx = Number(b?.idx || 0)
-    return bIdx - aIdx
-  })
+function titleize(value) {
+  return String(value || '').replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
-function titleize(value) {
-  return String(value || '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase())
+function formatValue(value) {
+  if (value === null || value === undefined || value === '' || (Array.isArray(value) && !value.length)) {
+    return '-'
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => escapeHtml(item)).join('<br>')
+  }
+
+  if (isPlainObject(value)) {
+    return escapeHtml(JSON.stringify(value))
+  }
+
+  return escapeHtml(String(value))
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function toTimestamp(value) {
@@ -391,10 +612,6 @@ function formatDateTime(value) {
 
 function escapeId(value) {
   return String(value).replace(/[^a-zA-Z0-9_-]/g, '-')
-}
-
-function isPlainObject(value) {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
 function escapeHtml(value) {
