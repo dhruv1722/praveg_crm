@@ -30,6 +30,16 @@ const EXPECTED_GUEST_ROWS = [
       { key: 'extra_beds', label: 'Extra Beds' },
       { key: 'adult', label: 'Adult' },
       { key: 'child', label: 'Child' },
+      { key: 'first_child_age', label: 'First Child Age', includeInCoverage: false },
+      { key: 'second_child_age', label: 'Second Child Age', includeInCoverage: false },
+      { key: 'third_child_age', label: 'Third Child Age', includeInCoverage: false },
+      { key: 'fourth_child_age', label: 'Fourth Child Age', includeInCoverage: false },
+      { key: 'fifth_child_age', label: 'Fifth Child Age', includeInCoverage: false },
+      { key: 'sixth_child_age', label: 'Sixth Child Age', includeInCoverage: false },
+      { key: 'seventh_child_age', label: 'Seventh Child Age', includeInCoverage: false },
+      { key: 'eighth_child_age', label: 'Eighth Child Age', includeInCoverage: false },
+      { key: 'ninth_child_age', label: 'Ninth Child Age', includeInCoverage: false },
+      { key: 'tenth_child_age', label: 'Tenth Child Age', includeInCoverage: false },
     ],
   },
   {
@@ -348,12 +358,14 @@ function getGuestCoverageGroups(data) {
       const groupRows = guestConfig.fields.map((field) => {
         const value = guestRow?.[field.key]
         const received = hasMeaningfulValue(value)
+        const includeInCoverage = field.includeInCoverage !== false
 
         return {
           key: `guest_${guestConfig.type.toLowerCase()}_${index + 1}_${field.key}`,
           label: field.label,
           received,
           value,
+          includeInCoverage,
         }
       })
 
@@ -369,8 +381,9 @@ function findGuestRowsByType(rows, type) {
 }
 
 function buildCoverageGroup(label, rows) {
-  const totalCount = rows.length
-  const receivedCount = rows.filter((row) => row.received).length
+  const rowsForCoverage = rows.filter((row) => row.includeInCoverage !== false)
+  const totalCount = rowsForCoverage.length
+  const receivedCount = rowsForCoverage.filter((row) => row.received).length
   const ratio = totalCount ? Math.round((receivedCount / totalCount) * 100) : 0
 
   return {
@@ -483,11 +496,17 @@ function buildPayloadComparisonTable(groups) {
     .map((group) => {
       const groupRows = group.rows
         .map((row) => {
+          const notReceived = row.includeInCoverage === false
+            ? '-'
+            : row.received
+              ? '-'
+              : 'Yes'
+
           return `
             <tr>
               <td style="${cellStyle} font-weight:600;">${escapeHtml(row.label)}</td>
               <td style="${cellStyle}">${row.received ? formatCoverageValue(row.key, row.value) : '-'}</td>
-              <td style="${cellStyle} text-align:center;">${row.received ? '-' : 'Yes'}</td>
+              <td style="${cellStyle} text-align:center;">${notReceived}</td>
             </tr>
           `
         })
