@@ -260,6 +260,87 @@ button.text-ink-white.bg-surface-gray-7:focus-visible {
   border-bottom-color: var(--prv-doc-id-border) !important;
 }
 
+/* CRM sidebar top profile/app block: match desk-style white hover/open behavior */
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2 {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2:hover,
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2.bg-surface-white {
+  background: #ffffff !important;
+  border-radius: 8px;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2
+  .text-base.font-medium.leading-none {
+  color: var(--prv-sidebar-text) !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2
+  .mt-1.text-sm.leading-none {
+  color: var(--prv-sidebar-text-muted) !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2:hover
+  .text-base.font-medium.leading-none,
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2.bg-surface-white
+  .text-base.font-medium.leading-none {
+  color: #0f172a !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2:hover
+  .mt-1.text-sm.leading-none,
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2.bg-surface-white
+  .mt-1.text-sm.leading-none {
+  color: #334155 !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2 > div:last-child .size-4 {
+  color: var(--prv-sidebar-text) !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2:hover > div:last-child .size-4,
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2.bg-surface-white > div:last-child .size-4 {
+  color: #0f172a !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2 .h-8.max-w-16.flex-shrink-0 {
+  height: auto !important;
+  max-width: 100px !important;
+}
+
+:where(.flex.h-screen.w-screen > .h-full.border-r.bg-surface-menu-bar,
+  .relative.z-10.flex.h-full.w-\[260px\].flex-col.justify-between.border-r.bg-surface-menu-bar)
+  .p-2 button.group.flex.h-12.items-center.rounded-md.py-2 .h-8.max-w-16.flex-shrink-0 img {
+  object-fit: contain !important;
+}
+
 @layer components {
   .prose-f {
     @apply break-all
