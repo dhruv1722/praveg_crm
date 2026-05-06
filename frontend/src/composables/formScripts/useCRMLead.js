@@ -145,6 +145,17 @@ export function useCRMLead(doc, document) {
         row.number_of_meal_persons,
         row.no_of_extra_bed,
         row.adult,
+        row.child,
+        row.first_child_age,
+        row.second_child_age,
+        row.third_child_age,
+        row.fourth_child_age,
+        row.fifth_child_age,
+        row.sixth_child_age,
+        row.seventh_child_age,
+        row.eighth_child_age,
+        row.ninth_child_age,
+        row.tenth_child_age,
         row.discount_percent,
         row.package,
         row.package_rate_per_unit,
@@ -154,6 +165,20 @@ export function useCRMLead(doc, document) {
         calculateChildRow(row)
       },
       { deep: true }
+    )
+
+    watch(
+      () => row.child,
+      (child) => {
+        if (parseInt(child) === 0) {
+          const childAgeFields = [
+            'first_child_age', 'second_child_age', 'third_child_age', 'fourth_child_age',
+            'fifth_child_age', 'sixth_child_age', 'seventh_child_age', 'eighth_child_age',
+            'ninth_child_age', 'tenth_child_age',
+          ]
+          childAgeFields.forEach(field => { row[field] = "0" })
+        }
+      }
     )
 
 
@@ -277,13 +302,39 @@ export function useCRMLead(doc, document) {
     row.total_extra_bed_nights = extra_beds * nights
     row.extra_bed_charges = row.total_extra_bed_nights * extra_bed_rate
 
+    // EXTRA CHILD (age > 6 and < 18, i.e. ages 7-17, Room rows only)
+    const childAgeFields = [
+      'first_child_age',
+      'second_child_age',
+      'third_child_age',
+      'fourth_child_age',
+      'fifth_child_age',
+      'sixth_child_age',
+      'seventh_child_age',
+      'eighth_child_age',
+      'ninth_child_age',
+      'tenth_child_age',
+    ]
+    let extra_child_count = 0
+    if (isRoomType) {
+      childAgeFields.forEach(field => {
+        const age = parseInt(row[field])
+        if (!isNaN(age) && age > 6 && age < 18) {
+          extra_child_count++
+        }
+      })
+    }
+    row.total_extra_child = extra_child_count
+    const extra_child_rate = toNumber(doc.value.custom_extra_child_rate)
+    row.extra_child_charges = extra_child_count * extra_child_rate * nights
+
     let unitRate = 0
     let lineTotal = 0
     let taxPercent = 0
 
     if (isRoomType) {
       unitRate = room_rate + (hasExtraBeds ? extra_bed_rate : 0)
-      lineTotal = row.room_charges + row.extra_bed_charges
+      lineTotal = row.room_charges + row.extra_bed_charges + row.extra_child_charges
       taxPercent = getRoomTaxPercent(unitRate)
     } else if (isMealType) {
       unitRate = row.meal_unit_rate
@@ -379,6 +430,7 @@ export function useCRMLead(doc, document) {
   async function fetchExtraBedRate(doc) {
     if (!doc.value.custom_hotel_property) {
       doc.value.custom_extra_bed_rate = 0
+      doc.value.custom_extra_child_rate = 0
       doc.value.custom_guest = [] // clear child table if hotel property is cleared
       return
     }
@@ -388,7 +440,7 @@ export function useCRMLead(doc, document) {
       params: {
         doctype: "CRM Hotel Property",
         filters: { name: doc.value.custom_hotel_property },
-        fieldname: ["extra_bed_rate"],
+        fieldname: ["extra_bed_rate", "extra_child_rate"],
       },
       auto: true,
       onSuccess(data) {
@@ -396,6 +448,12 @@ export function useCRMLead(doc, document) {
           doc.value.custom_extra_bed_rate = data.extra_bed_rate
         } else {
           doc.value.custom_extra_bed_rate = 0
+        }
+
+        if (data?.extra_child_rate) {
+          doc.value.custom_extra_child_rate = data.extra_child_rate
+        } else {
+          doc.value.custom_extra_child_rate = 0
         }
       },
       onError(err) {
